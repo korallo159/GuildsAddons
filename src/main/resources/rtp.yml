@@ -1,0 +1,30 @@
+rtp:
+  - s1
+  - s2
+  - s3
+  - s4
+rtps:
+  '1':
+    ==: org.bukkit.Location
+    world: world
+    x: 301.0
+    y: 64.0
+    z: 423.0
+    pitch: 0.0
+    yaw: 0.0
+  '2':
+    ==: org.bukkit.Location
+    world: world
+    x: 289.0
+    y: 64.0
+    z: 419.0
+    pitch: 0.0
+    yaw: 0.0
+  '3':
+    ==: org.bukkit.Location
+    world: world
+    x: -104.0
+    y: 76.0
+    z: -60.0
+    pitch: 0.0
+    yaw: 0.0

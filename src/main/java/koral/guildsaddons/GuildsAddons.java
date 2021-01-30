@@ -1,10 +1,10 @@
 package koral.guildsaddons;
-
+import koral.guildsaddons.commands.SetRtp;
+import koral.guildsaddons.listeners.PlayerInteract;
 import koral.guildsaddons.listeners.PluginChannelListener;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+
 
 public final class GuildsAddons extends JavaPlugin implements Listener {
 //TODO:Random TP pomiedzy serwerami i dostepnymi kordami
@@ -16,13 +16,15 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
 //TODO: turbo drop - /turbodrop <nick> <czas> zwieksza komus drop, do zakupienia w sklepie albo eventy
 //TODO: lootbagi z mimi
 
+    public static GuildsAddons plugin;
     @Override
     public void onEnable() {
+        plugin = this;
         this.saveDefaultConfig();
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", new PluginChannelListener());
-        // Plugin startup logic
-
+        getServer().getPluginManager().registerEvents(new PlayerInteract(), this);
+        getCommand("setrtp").setExecutor(new SetRtp());
     }
 
     @Override
@@ -30,4 +32,7 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         // Plugin shutdown logic
     }
 
+    public static GuildsAddons getPlugin() {
+        return plugin;
+    }
 }

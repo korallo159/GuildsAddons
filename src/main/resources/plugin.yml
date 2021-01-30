@@ -2,3 +2,5 @@ name: GuildsAddons
 version: ${project.version}
 main: koral.guildsaddons.GuildsAddons
 api-version: 1.16
+commands:
+  setrtp:
