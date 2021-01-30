@@ -8,7 +8,9 @@ import java.io.*;
 public class ConfigManager {
     public YamlConfiguration config;
     public File configFile;
+
     public ConfigManager(String ymlName){
+        System.out.println(ymlName);
         this.configFile = new File(GuildsAddons.getPlugin().getDataFolder(), ymlName);
         this.config = YamlConfiguration.loadConfiguration(configFile);
         setupConfig(configFile, ymlName);

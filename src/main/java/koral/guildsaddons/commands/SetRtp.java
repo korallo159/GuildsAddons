@@ -1,6 +1,5 @@
 package koral.guildsaddons.commands;
 
-import koral.guildsaddons.GuildsAddons;
 import koral.guildsaddons.managers.ConfigManager;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
@@ -11,7 +10,6 @@ import org.bukkit.entity.Player;
 
 
 public class SetRtp implements CommandExecutor {
-
     public static ConfigManager rtpConfig = new ConfigManager("rtp.yml");
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

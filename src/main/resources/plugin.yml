@@ -3,4 +3,12 @@ version: ${project.version}
 main: koral.guildsaddons.GuildsAddons
 api-version: 1.16
 commands:
+  turbodrop:
+    description: Podwaja Drop z Cobla
+    permission: guildsaddons.turbodrop
+    usage: /turbodrop <nick | @server> <czas w minutach>
+  drop:
+    description: umozliwoa edycje dropu ze stone
+    permission: guildsaddons.drop
+
   setrtp:
