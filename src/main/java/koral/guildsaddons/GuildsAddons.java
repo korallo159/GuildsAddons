@@ -19,6 +19,7 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
 //TODO: lootbagi z mimi
 
 //TODO: Kosz z mimi
+//TODO: Tpa miedzy serwerami
 
     public static GuildsAddons plugin;
     @Override

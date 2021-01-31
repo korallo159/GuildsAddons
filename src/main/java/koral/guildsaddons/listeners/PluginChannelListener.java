@@ -25,6 +25,9 @@ public class PluginChannelListener implements PluginMessageListener {
                 String s = new String(data);
                 Bukkit.broadcastMessage(s);
             }
+            if(subchannel.equals("TpaChannel")){
+
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -65,5 +68,8 @@ public class PluginChannelListener implements PluginMessageListener {
             e.printStackTrace();
         }
         sendPluginMessage(player, byteArrayOutputStream.toByteArray());
+    }
+    public static void sendTpaRequest(){
+
     }
 }
