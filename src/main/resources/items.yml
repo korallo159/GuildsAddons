@@ -6,8 +6,17 @@ Cobblex:
     ==: ItemMeta
     meta-type: UNSPECIFIC
     display-name: §b§l§oCobblex
-    lore:
-      - §6no Cobblexno
+
+Stoniarki:
+  ==: org.bukkit.inventory.ItemStack
+  v: 2580
+  type: LIGHT_GRAY_CONCRETE
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+    display-name: §b§l§oStoniarka
+
+# Boyki
 AutoFosa:
   ==: org.bukkit.inventory.ItemStack
   v: 2580
@@ -15,6 +24,20 @@ AutoFosa:
   meta:
     ==: ItemMeta
     meta-type: UNSPECIFIC
-    display-name: §b§l§oCobblex
-    lore:
-      - §6no Cobblexno
+    display-name: §b§l§oAuto Fosa
+BoyFarmer:
+  ==: org.bukkit.inventory.ItemStack
+  v: 2580
+  type: LIGHT_GRAY_CONCRETE
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+    display-name: §b§l§oBoy Farmer
+SandFarmer:
+  ==: org.bukkit.inventory.ItemStack
+  v: 2580
+  type: LIGHT_GRAY_CONCRETE
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+    display-name: §b§l§oSandFarmer

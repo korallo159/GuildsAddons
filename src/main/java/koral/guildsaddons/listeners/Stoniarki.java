@@ -5,10 +5,13 @@ import koral.guildsaddons.managers.ConfigManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -16,7 +19,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Stoniarki implements Listener {
-    final int cooldown = 40; // w tickach
+    final int cooldown = 20; // w tickach
 
     static ConfigManager config = new ConfigManager("stoniarki.yml");
 
@@ -24,6 +27,25 @@ public class Stoniarki implements Listener {
     static Set<Location> stoniarki = new HashSet<>();
 
     public static ItemStack itemStoniark;
+
+    @EventHandler
+    public void onPistonExtend(BlockPistonExtendEvent ev) {
+        for (Block blok : ev.getBlocks()) {
+            if (stoniarki.contains(blok.getLocation())) {
+                ev.setCancelled(true);
+                return;
+            }
+        }
+    }
+    @EventHandler
+    public void onPistonExtend(BlockPistonRetractEvent ev) {
+        for (Block blok : ev.getBlocks()) {
+            if (stoniarki.contains(blok.getLocation())) {
+                ev.setCancelled(true);
+                return;
+            }
+        }
+    }
 
     @EventHandler(priority =  EventPriority.HIGHEST)
     public void onBlockBreak(BlockBreakEvent ev) {

@@ -38,7 +38,7 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new DeletenMending(), this);
         getServer().getPluginManager().registerEvents(new DropCollector(), this);
         getServer().getPluginManager().registerEvents(new Stoniarki(), this);
-        getServer().getPluginManager().registerEvents(new AutoFosa(), this);
+        getServer().getPluginManager().registerEvents(new Boyki(), this);
         getServer().getPluginManager().registerEvents(new Cobblex(), this);
         getServer().getPluginManager().registerEvents(new PlayerJoin(), this);
         StoneDrop stoneDrop = new StoneDrop();
@@ -66,7 +66,10 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
     public static void reloadPlugin() {
         plugin.config.reloadCustomConfig();
 
-        AutoFosa.itemAutoFosa = plugin.config.config.getItemStack("AutoFosa");
+        Boyki.itemAutoFosa = plugin.config.config.getItemStack("AutoFosa");
+        Boyki.itemBoyFarmer = plugin.config.config.getItemStack("BoyFarmer");
+        Boyki.itemSandFarmer = plugin.config.config.getItemStack("SandFarmer");
+        Boyki.itemAutoFosa = plugin.config.config.getItemStack("AutoFosa");
         Cobblex.itemCobblex = plugin.config.config.getItemStack("Cobblex");
         Stoniarki.itemStoniark = plugin.config.config.getItemStack("Stoniarki");
 
