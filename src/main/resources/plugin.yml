@@ -10,5 +10,7 @@ commands:
   drop:
     description: umozliwoa edycje dropu ze stone
     permission: guildsaddons.drop
-
   setrtp:
+  tpa:
+  tpaccept:
+  tpdeny:

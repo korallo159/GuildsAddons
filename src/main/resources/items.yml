@@ -1,0 +1,20 @@
+Cobblex:
+  ==: org.bukkit.inventory.ItemStack
+  v: 2580
+  type: LIGHT_GRAY_CONCRETE
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+    display-name: §b§l§oCobblex
+    lore:
+      - §6no Cobblexno
+AutoFosa:
+  ==: org.bukkit.inventory.ItemStack
+  v: 2580
+  type: LIGHT_GRAY_CONCRETE
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+    display-name: §b§l§oCobblex
+    lore:
+      - §6no Cobblexno

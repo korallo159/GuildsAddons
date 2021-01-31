@@ -1,6 +1,7 @@
 package koral.guildsaddons;
 
 import koral.guildsaddons.commands.SetRtp;
+import koral.guildsaddons.commands.Tpa;
 import koral.guildsaddons.listeners.*;
 import koral.guildsaddons.managers.ConfigManager;
 import org.bukkit.event.Listener;
@@ -39,11 +40,15 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new Stoniarki(), this);
         getServer().getPluginManager().registerEvents(new AutoFosa(), this);
         getServer().getPluginManager().registerEvents(new Cobblex(), this);
+        getServer().getPluginManager().registerEvents(new PlayerJoin(), this);
         StoneDrop stoneDrop = new StoneDrop();
         getServer().getPluginManager().registerEvents(stoneDrop, this);
         getCommand("turbodrop").setExecutor(stoneDrop);
         getCommand("drop").setExecutor(stoneDrop);
-
+        Tpa tpa = new Tpa();
+        getCommand("tpa").setExecutor(tpa);
+        getCommand("tpaccept").setExecutor(tpa);
+        getCommand("tpdeny").setExecutor(tpa);
         getCommand("setrtp").setExecutor(new SetRtp());
 
     }
