@@ -2,6 +2,8 @@ package koral.guildsaddons;
 
 import koral.guildsaddons.commands.SetRtp;
 import koral.guildsaddons.commands.Tpa;
+import koral.guildsaddons.database.DatabaseConnection;
+import koral.guildsaddons.database.statements.Table;
 import koral.guildsaddons.listeners.*;
 import koral.guildsaddons.managers.ConfigManager;
 import org.bukkit.event.Listener;
@@ -50,6 +52,11 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getCommand("tpaccept").setExecutor(tpa);
         getCommand("tpdeny").setExecutor(tpa);
         getCommand("setrtp").setExecutor(new SetRtp());
+
+        DatabaseConnection.configureDbConnection();
+        Table.createTable();
+
+
 
     }
 

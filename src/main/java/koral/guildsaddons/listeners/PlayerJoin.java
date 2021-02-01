@@ -1,6 +1,7 @@
 package koral.guildsaddons.listeners;
 
 import koral.guildsaddons.GuildsAddons;
+import koral.guildsaddons.database.statements.PlayersStatements;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -12,6 +13,9 @@ public class PlayerJoin implements Listener {
     //TODO: zwykle tpa, jesli gracze sa na tym samym serwerze.
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e){
+        Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> {
+            PlayersStatements.createPlayerQuery(e.getPlayer());
+        });
         if(PluginChannelListener.tpaTeleport.containsKey(e.getPlayer().getName())){
             Player target = Bukkit.getPlayer(PluginChannelListener.tpaTeleport.get(e.getPlayer().getName()));
             Bukkit.getScheduler().runTask(GuildsAddons.getPlugin(), () -> e.getPlayer().teleport(target.getLocation()));

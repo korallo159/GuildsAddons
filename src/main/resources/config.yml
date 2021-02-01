@@ -1,2 +1,7 @@
+
 name: s1 # rtp handler
 exp from blocks: 10
+#db connection
+jdbcurl: jdbc:mysql://tsgorzyce.pl:3306/schowek
+username: guilduser
+password: 1478963
