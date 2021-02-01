@@ -76,6 +76,7 @@ public class StoneDrop implements Listener, TabExecutor {
             meta.setDisplayName(ChatColor.GRAY + " ");
             meta.setUnbreakable(true);
             meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
+            emptySlot.setItemMeta(meta);
         }
         Inventory inv;
 

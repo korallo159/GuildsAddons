@@ -6,6 +6,10 @@ import koral.guildsaddons.database.DatabaseConnection;
 import koral.guildsaddons.database.statements.Table;
 import koral.guildsaddons.listeners.*;
 import koral.guildsaddons.managers.ConfigManager;
+import koral.guildsaddons.schowek.InventoryClickListener;
+import koral.guildsaddons.schowek.InventoryCloseListener;
+import koral.guildsaddons.schowek.ItemPickUpListener;
+import koral.guildsaddons.schowek.Schowek;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -23,6 +27,7 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
 
 //TODO: Kosz z mimi
 //TODO: Tpa miedzy serwerami
+//TODO: rzucane tnt
 
     public static GuildsAddons plugin;
     @Override
@@ -43,6 +48,12 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new Boyki(), this);
         getServer().getPluginManager().registerEvents(new Cobblex(), this);
         getServer().getPluginManager().registerEvents(new PlayerJoin(), this);
+
+        getServer().getPluginManager().registerEvents(new InventoryClickListener(), this);
+        getServer().getPluginManager().registerEvents(new InventoryCloseListener(), this);
+        getServer().getPluginManager().registerEvents(new ItemPickUpListener(), this);
+        getCommand("schowek").setExecutor(new Schowek());
+
         StoneDrop stoneDrop = new StoneDrop();
         getServer().getPluginManager().registerEvents(stoneDrop, this);
         getCommand("turbodrop").setExecutor(stoneDrop);
@@ -55,9 +66,6 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
 
         DatabaseConnection.configureDbConnection();
         Table.createTable();
-
-
-
     }
 
     @Override
@@ -82,6 +90,6 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
 
         StoneDrop.reload();
         Stoniarki.reload();
+        Schowek.reload();
     }
-
 }

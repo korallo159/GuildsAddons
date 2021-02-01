@@ -3,8 +3,11 @@ package koral.guildsaddons.listeners;
 import koral.guildsaddons.GuildsAddons;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -44,9 +47,9 @@ public class PluginChannelListener implements PluginMessageListener {
                     if (Bukkit.getPlayer(jsonObject.get("target").toString()) != null)
                         if (accept) {
                             Bukkit.getPlayer(jsonObject.get("target").toString()).sendMessage(ChatColor.GREEN + "Prośba o teleportację zaakceptowana. Nie ruszaj się przez 10 sekund");
-                            //TODO: 10 sekund oczekiwania, a jak sie ruszy to canceluje.
-                            sendPlayerTpInfo("TpaChannel", server, player, jsonObject.get("player").toString());
-                            connectAnotherServer(server, player);
+                            player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 11*20, 0, false, false, false));
+                            player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 11*20, 2, false, false, false));
+                            tpaTimer(server, player, jsonObject, player.getLocation(), 10);
                         } else
                             Bukkit.getPlayer(jsonObject.get("target").toString()).sendMessage("ChatColor.RED" + "Prośba o teleportacje odrzucona.");
                     return;
@@ -68,6 +71,20 @@ public class PluginChannelListener implements PluginMessageListener {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void tpaTimer(String server, Player player, JSONObject jsonObject, Location lastLocation, int secondsLeft) {
+        if (player.getLocation().distance(lastLocation) > 1) {
+            player.sendMessage("§cPoruszyłeś się! Teleportacja anulowana.");
+            player.removePotionEffect(PotionEffectType.CONFUSION);
+            player.removePotionEffect(PotionEffectType.BLINDNESS);
+        } else if (secondsLeft <= 0) {
+            sendPlayerTpInfo("TpaChannel", server, player, jsonObject.get("player").toString());
+            connectAnotherServer(server, player);
+        } else {
+            player.sendTitle("§5§lTeleportacja", "§9Nie ruszaj się, za §a " + secondsLeft + "s §9 zostaniesz przeteleportowany", 0, 22, 5);
+            Bukkit.getScheduler().runTaskLater(GuildsAddons.plugin, () -> tpaTimer(server, player, jsonObject, lastLocation,secondsLeft - 1), 20);
         }
     }
 

@@ -10,6 +10,9 @@ commands:
   drop:
     description: umozliwoa edycje dropu ze stone
     permission: guildsaddons.drop
+  schowek:
+    description: otwiera schowek
+    permission: guildsaddons.schowek
   setrtp:
   tpa:
   tpaccept:
