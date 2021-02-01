@@ -85,19 +85,20 @@ public class PlayersStatements {
     public static void getMysqlPlayerData(Player player){
         Connection connection = null;
         PreparedStatement statement = null;
+        ResultSet resultSet = null;
         String sql = "SELECT playerdata FROM Players WHERE NICK=?";
         try{
             connection = hikari.getConnection();
             statement = connection.prepareStatement(sql);
             statement.setString(1, player.getName());
-            ResultSet resultSet = statement.executeQuery();
-       //     while(resultSet.next()){
+            resultSet = statement.executeQuery();
+            while(resultSet.next()){
                 resultSet.next();
                 String data = resultSet.getString("playerdata");
                 if(data != null) {
 
                 }
-     //       }
+            }
         }catch (SQLException e){
             e.printStackTrace();
         }
@@ -114,6 +115,13 @@ public class PlayersStatements {
                     statement.close();
                 } catch (SQLException e2) {
                     e2.printStackTrace();
+                }
+            }
+            if(resultSet != null){
+                try{
+                    resultSet.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
                 }
             }
         }
