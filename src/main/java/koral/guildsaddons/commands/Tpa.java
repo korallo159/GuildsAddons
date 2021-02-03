@@ -18,7 +18,6 @@ import org.json.simple.JSONObject;
 import java.util.HashMap;
 
 public class Tpa implements CommandExecutor {
-    //TODO: zwykle tpa, jesli gracze sa na tym samym serwerze.
     Cooldowns cooldown = new Cooldowns(new HashMap<>());
     HashMap<String, String> localTpMap = new HashMap<>();
     final String tpaPrefix = "§2[§aTPA§2] ";
