@@ -10,7 +10,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 public class PlayerJoin implements Listener {
 
-    //TODO: zwykle tpa, jesli gracze sa na tym samym serwerze.
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e){
         Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> {

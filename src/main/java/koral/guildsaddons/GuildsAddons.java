@@ -1,6 +1,7 @@
 package koral.guildsaddons;
 
 import koral.guildsaddons.commands.SetRtp;
+import koral.guildsaddons.commands.Sethome;
 import koral.guildsaddons.commands.Tpa;
 import koral.guildsaddons.database.DatabaseConnection;
 import koral.guildsaddons.database.statements.Table;
@@ -63,6 +64,7 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getCommand("tpaccept").setExecutor(tpa);
         getCommand("tpdeny").setExecutor(tpa);
         getCommand("setrtp").setExecutor(new SetRtp());
+        getCommand("sethome").setExecutor(new Sethome());
 
         DatabaseConnection.configureDbConnection();
         Table.createTable();

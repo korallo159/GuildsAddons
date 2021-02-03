@@ -1,5 +1,6 @@
 package koral.guildsaddons.database.statements;
 
+import koral.guildsaddons.model.Home;
 import org.bukkit.entity.Player;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -129,8 +130,6 @@ public class PlayersStatements {
         }
     }
 
-
-
     // Async
     public static String getMysqlPlayerData(Player player) {
         Connection connection = null;
@@ -159,4 +158,58 @@ public class PlayersStatements {
         return null;
     }
 
+    public static void setHomeData(Player player, String data){
+        Connection connection = null;
+        PreparedStatement statement = null;
+        try{
+            connection = hikari.getConnection();
+
+            statement = connection.prepareStatement("SELECT * FROM Players WHERE NICK=?");
+            statement.setString(1, player.getName());
+            String update = "UPDATE Players SET homes=? WHERE NICK=?";
+            statement = connection.prepareStatement(update);
+
+            statement.setString(1, data);
+            statement.setString(2, player.getName());
+            statement.execute();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            for (AutoCloseable closeable : new AutoCloseable[] {connection, statement})
+                if (closeable != null)
+                    try {
+                        closeable.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+        }
+    }
+
+    public static String getHomeData(Player player){
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        String sql = "SELECT homes FROM Players WHERE NICK=?";
+        try{
+            connection = hikari.getConnection();
+            statement = connection.prepareStatement(sql);
+            statement.setString(1, player.getName());
+            resultSet = statement.executeQuery();
+            while(resultSet.next()){
+                return resultSet.getString("homes");
+            }
+        }catch (SQLException e){
+            e.printStackTrace();
+        } finally {
+            for (AutoCloseable closeable : new AutoCloseable[] {connection, statement, resultSet})
+                if (closeable != null)
+                    try {
+                        closeable.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+        }
+        return null;
+    }
 }

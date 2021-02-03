@@ -46,26 +46,26 @@ public class PluginChannelListener implements PluginMessageListener {
                     String server = (String) jsonObject.get("server");
                     if (Bukkit.getPlayer(jsonObject.get("target").toString()) != null)
                         if (accept) {
-                            Bukkit.getPlayer(jsonObject.get("target").toString()).sendMessage(ChatColor.GREEN + "Prośba o teleportację zaakceptowana. Nie ruszaj się przez 10 sekund");
                             player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 11*20, 0, false, false, false));
                             player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 11*20, 2, false, false, false));
                             tpaTimer(server, player, jsonObject, player.getLocation(), 10);
                         } else
-                            Bukkit.getPlayer(jsonObject.get("target").toString()).sendMessage("ChatColor.RED" + "Prośba o teleportacje odrzucona.");
+                            Bukkit.getPlayer(jsonObject.get("target").toString()).sendMessage("§2[§aTPA§2] §c" + "Prośba o teleportacje odrzucona.");
                     return;
                 }
                 if(jsonObject.containsKey("accepted")){
-                   String tpaAccepter = (String) jsonObject.get("player"); // greymen15 w przypadku wysylania
-                   String tpaReceiver = (String) jsonObject.get("target"); // korallo
-                tpaTeleport.put(tpaAccepter, tpaReceiver);
-                Bukkit.getScheduler().runTaskLater(GuildsAddons.getPlugin(), () -> tpaTeleport.remove(tpaAccepter), 100); // gdyby jakimś cudem gracza nie przeniosło od razu
+                    String tpaAccepter = (String) jsonObject.get("player"); // greymen15 w przypadku wysylania
+                    String tpaReceiver = (String) jsonObject.get("target"); // korallo
+                    tpaTeleport.put(tpaAccepter, tpaReceiver);
+                    Bukkit.getScheduler().runTaskLater(GuildsAddons.getPlugin(), () -> tpaTeleport.remove(tpaAccepter), 100); // gdyby jakimś cudem gracza nie przeniosło od razu
                 }
                 String tpaSender = (String) jsonObject.get("player");
                 String tpaReceiver = (String) jsonObject.get("target");
                 if (Bukkit.getPlayer(tpaReceiver) != null) {
-                    tpaMap.put(tpaReceiver, tpaSender);
+                    tpaMap.put(tpaReceiver.toLowerCase(), tpaSender);
                     Bukkit.getScheduler().runTaskLater(GuildsAddons.getPlugin(), () -> tpaMap.remove(tpaReceiver), 20 * 25);
-                    Bukkit.getPlayer(tpaReceiver).sendMessage(ChatColor.RED + "Dostałeś prośbę o teleportację od gracza " + tpaSender);
+                    Bukkit.getPlayer(tpaReceiver).sendMessage("§2[§aTPA§2] " + "§cDostałeś prośbę o teleportację od gracza " + tpaSender +
+                            " aby zaakceptować wpisz /tpaccept");
                 }
 
             }
