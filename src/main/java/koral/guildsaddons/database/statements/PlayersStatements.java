@@ -6,6 +6,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import javax.security.auth.login.AccountLockedException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -35,20 +36,7 @@ public class PlayersStatements {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
+            closeAll(connection, statement);
         }
     }
 
@@ -71,13 +59,7 @@ public class PlayersStatements {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            for (AutoCloseable closeable : new AutoCloseable[] {connection, statement})
-                if (closeable != null)
-                    try {
-                        closeable.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+            closeAll(connection, statement);
         }
     }
 
@@ -120,13 +102,7 @@ public class PlayersStatements {
         } catch (SQLException | ParseException e) {
             e.printStackTrace();
         } finally {
-            for (AutoCloseable closeable : new AutoCloseable[] {connection, statement, resultSet})
-                if (closeable != null)
-                    try {
-                        closeable.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+            closeAll(connection, statement, resultSet);
         }
     }
 
@@ -136,26 +112,24 @@ public class PlayersStatements {
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         String sql = "SELECT playerdata FROM Players WHERE NICK=?";
+
+        String result = null;
+
         try{
             connection = hikari.getConnection();
             statement = connection.prepareStatement(sql);
             statement.setString(1, player.getName());
             resultSet = statement.executeQuery();
-            while(resultSet.next()){
-                return resultSet.getString("playerdata");
+            while(resultSet.next()) {
+                result = resultSet.getString("playerdata");
             }
         }catch (SQLException e){
             e.printStackTrace();
         } finally {
-            for (AutoCloseable closeable : new AutoCloseable[] {connection, statement, resultSet})
-                if (closeable != null)
-                    try {
-                        closeable.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+            closeAll(connection, statement, resultSet);
         }
-        return null;
+
+        return result;
     }
 
     public static void setHomeData(Player player, String data){
@@ -176,40 +150,44 @@ public class PlayersStatements {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            for (AutoCloseable closeable : new AutoCloseable[] {connection, statement})
-                if (closeable != null)
-                    try {
-                        closeable.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+            closeAll(connection, statement);
         }
     }
 
-    public static String getHomeData(Player player){
+    public static String getHomeData(String playerName){
         Connection connection = null;
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         String sql = "SELECT homes FROM Players WHERE NICK=?";
+
+        String result = null;
+
         try{
             connection = hikari.getConnection();
             statement = connection.prepareStatement(sql);
-            statement.setString(1, player.getName());
+            statement.setString(1, playerName);
             resultSet = statement.executeQuery();
             while(resultSet.next()){
-                return resultSet.getString("homes");
+                result = resultSet.getString("homes");
             }
         }catch (SQLException e){
             e.printStackTrace();
         } finally {
-            for (AutoCloseable closeable : new AutoCloseable[] {connection, statement, resultSet})
-                if (closeable != null)
-                    try {
-                        closeable.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+            closeAll(connection, statement, resultSet);
         }
-        return null;
+
+        return result;
+    }
+
+
+
+    private static void closeAll(AutoCloseable... toClose) {
+        for (AutoCloseable closeable : toClose)
+            if (closeable != null)
+                try {
+                    closeable.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
     }
 }

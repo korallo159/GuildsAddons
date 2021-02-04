@@ -64,7 +64,11 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getCommand("tpaccept").setExecutor(tpa);
         getCommand("tpdeny").setExecutor(tpa);
         getCommand("setrtp").setExecutor(new SetRtp());
-        getCommand("sethome").setExecutor(new Sethome());
+
+        Sethome setHome = new Sethome();
+        getCommand("sethome").setExecutor(setHome);
+        getCommand("delhome").setExecutor(setHome);
+        getCommand("home").setExecutor(setHome);
 
         DatabaseConnection.configureDbConnection();
         Table.createTable();

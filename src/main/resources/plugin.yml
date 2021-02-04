@@ -25,4 +25,16 @@ commands:
   tpdeny:
     description: tpa request
     permission: guildsaddons.tpa
+  delhome:
+    permission: guildsaddons.delhome
+    usage: /sethome <nazwa>
   sethome:
+    permission: guildsaddons.sethome
+    usage: /sethome <nazwa>
+  home:
+    permission: guildsaddons.home
+    usage: /home (nazwa)
+
+permissions:
+  home.others:
+    default: false
