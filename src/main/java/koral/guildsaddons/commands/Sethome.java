@@ -57,6 +57,7 @@ public class Sethome implements CommandExecutor {
             JSONObject jsonObject = (JSONObject) jsonArray.get(i);
             if(jsonObject.get("homename").toString().replace("\"", "").equalsIgnoreCase(arg)){
                Home home = new Gson().fromJson(jsonObject.toJSONString(), Home.class);
+               //wyslac do mapy on player join
                PluginChannelListener.connectAnotherServer(home.getServer(), player);
                 break;
             }

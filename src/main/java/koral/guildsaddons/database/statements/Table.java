@@ -11,7 +11,7 @@ public class Table {
     public static void createTable() {
         Connection connection = null;
         PreparedStatement statement = null;
-        String create = "CREATE TABLE IF NOT EXISTS Players(NICK VARCHAR(16), UUID VARCHAR(36), playerdata TINYTEXT, homes TINYTEXT DEFAULT '[]', PRIMARY KEY (NICK))";
+        String create = "CREATE TABLE IF NOT EXISTS Players(NICK VARCHAR(16), UUID VARCHAR(36), playerdata TINYTEXT, homes TEXT DEFAULT '[]', PRIMARY KEY (NICK))";
 
         try {
             connection = hikari.getConnection();
