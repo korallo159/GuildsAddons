@@ -4,3 +4,8 @@ exp from blocks: 10
 jdbcurl:
 username:
 password:
+
+ThrowingTnt:
+  power_of_explosion: 2.0
+  power_of_throwing: 2.5
+  ticks_to_explosion: 200

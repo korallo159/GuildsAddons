@@ -49,6 +49,7 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new Boyki(), this);
         getServer().getPluginManager().registerEvents(new Cobblex(), this);
         getServer().getPluginManager().registerEvents(new PlayerJoin(), this);
+        getServer().getPluginManager().registerEvents(new ThrowingTnt(), this);
 
         getServer().getPluginManager().registerEvents(new InventoryClickListener(), this);
         getServer().getPluginManager().registerEvents(new InventoryCloseListener(), this);
@@ -86,6 +87,7 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
     private ConfigManager config;
     public static void reloadPlugin() {
         plugin.config.reloadCustomConfig();
+        plugin.reloadConfig();
 
         Boyki.itemAutoFosa = plugin.config.config.getItemStack("AutoFosa");
         Boyki.itemBoyFarmer = plugin.config.config.getItemStack("BoyFarmer");
@@ -93,6 +95,11 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         Boyki.itemAutoFosa = plugin.config.config.getItemStack("AutoFosa");
         Cobblex.itemCobblex = plugin.config.config.getItemStack("Cobblex");
         Stoniarki.itemStoniark = plugin.config.config.getItemStack("Stoniarki");
+        ThrowingTnt.item = plugin.config.config.getItemStack("ThrowingTnt");
+
+        ThrowingTnt.power_of_explosion = plugin.getConfig().getInt("ThrowingTnt.power_of_explosion");
+        ThrowingTnt.power_of_throwing = plugin.getConfig().getInt("ThrowingTnt.power_of_throwing");
+        ThrowingTnt.ticks_to_explosion = plugin.getConfig().getInt("ThrowingTnt.ticks_to_explosion");
 
         StoneDrop.reload();
         Stoniarki.reload();
