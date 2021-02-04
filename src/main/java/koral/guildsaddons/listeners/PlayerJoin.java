@@ -1,5 +1,4 @@
 package koral.guildsaddons.listeners;
-
 import koral.guildsaddons.GuildsAddons;
 import koral.guildsaddons.database.statements.PlayersStatements;
 import org.bukkit.Bukkit;
@@ -7,6 +6,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+
+import static koral.guildsaddons.commands.Sethome.homesCompleterGet;
 
 public class PlayerJoin implements Listener {
 
@@ -21,5 +22,7 @@ public class PlayerJoin implements Listener {
             System.out.println(PluginChannelListener.tpaTeleport.get(e.getPlayer().getName()));
             PluginChannelListener.tpaTeleport.remove(e.getPlayer().getName());
         }
+        Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> homesCompleterGet(e.getPlayer()));
     }
+
 }

@@ -1,5 +1,4 @@
 package koral.guildsaddons.commands;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import koral.guildsaddons.GuildsAddons;
@@ -17,10 +16,11 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
-public class Sethome implements TabExecutor {
+public class Sethome implements CommandExecutor, TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.plugin, () -> {
@@ -34,7 +34,7 @@ public class Sethome implements TabExecutor {
 
             if (command.getName().equalsIgnoreCase("sethome")) {
                 setHome(player, homeName);
-            } else if(command.getName().equalsIgnoreCase("home")){
+            } else if (command.getName().equalsIgnoreCase("home")) {
                 String owner = player.getName();
                 if (sender.hasPermission("home.others") && homeName.contains(":")) {
                     owner = homeName.substring(0, homeName.indexOf(":"));
@@ -66,12 +66,13 @@ public class Sethome implements TabExecutor {
 
         if (jsonArray.size() >= getHomeLimit(player)) {
             boolean was = false;
-            for (int i=0; i < jsonArray.size(); i++) {
+            for (int i = 0; i < jsonArray.size(); i++) {
                 JSONObject json = (JSONObject) jsonArray.get(i);
                 if (json.get("homename").toString().replace("\"", "").equalsIgnoreCase(homeName)) {
                     jsonArray.remove(i);
                     PlayersStatements.setHomeData(player, jsonArray.toJSONString()); //TODO ASYNC
                     player.sendMessage("Usunięto home " + homeName);
+                    Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> homesCompleterGet(player));
                     return;
                 }
             }
@@ -81,6 +82,7 @@ public class Sethome implements TabExecutor {
             }
         }
     }
+
     private void setHome(Player player, String arg) {
         JSONParser jsonParser = new JSONParser();
         JSONArray jsonArray;
@@ -92,7 +94,7 @@ public class Sethome implements TabExecutor {
 
         if (jsonArray.size() >= getHomeLimit(player)) {
             boolean was = false;
-            for (int i=0; i < jsonArray.size(); i++) {
+            for (int i = 0; i < jsonArray.size(); i++) {
                 JSONObject json = (JSONObject) jsonArray.get(i);
                 if (json.get("homename").toString().replace("\"", "").equalsIgnoreCase(arg)) {
                     arg = json.get("homename").toString().replace("\"", "");
@@ -111,9 +113,14 @@ public class Sethome implements TabExecutor {
         jsonArray.add(gson.toJsonTree(home));
         PlayersStatements.setHomeData(player, jsonArray.toJSONString()); //TODO ASYNC
         player.sendMessage("Ustawiono home " + arg);
+        Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> homesCompleterGet(player));
     }
 
-    private boolean send(CommandSender sender, String msg) {sender.sendMessage(msg); return true;}
+    private boolean send(CommandSender sender, String msg) {
+        sender.sendMessage(msg);
+        return true;
+    }
+
     private boolean teleportHome(Player player, String owner, String homeName) {
         if (homeName.contains(":") || homeName.isEmpty())
             return send(player, "Niepoprawna nazwa home: " + homeName);
@@ -126,21 +133,42 @@ public class Sethome implements TabExecutor {
             return send(player, "Nie masz żadnego home");
         }
 
-        for(int i =0; i< jsonArray.size(); i++) {
+        for (int i = 0; i < jsonArray.size(); i++) {
             JSONObject jsonObject = (JSONObject) jsonArray.get(i);
-            if(jsonObject.get("homename").toString().replace("\"", "").equalsIgnoreCase(homeName)){
-               Home home = new Gson().fromJson(jsonObject.toJSONString(), Home.class);
-               player.sendMessage("Teleportowanie na home " + homeName);
-               Bukkit.getScheduler().runTask(GuildsAddons.plugin, () -> Teleport.teleport(player, home.getLocation()));
-               return true;
+            if (jsonObject.get("homename").toString().replace("\"", "").equalsIgnoreCase(homeName)) {
+                Home home = new Gson().fromJson(jsonObject.toJSONString(), Home.class);
+                player.sendMessage("Teleportowanie na home " + homeName);
+                Bukkit.getScheduler().runTask(GuildsAddons.plugin, () -> Teleport.teleport(player, home.getLocation()));
+                return true;
             }
         }
 
         return send(player, "Niepoprawna nazwa home: " + homeName);
     }
 
+    public static void homesCompleterGet(Player player){
+        List<String> homes = new ArrayList<>();
+        JSONArray jsonArray;
+        JSONParser jsonParser = new JSONParser();
+        try {
+            jsonArray = (JSONArray) jsonParser.parse(PlayersStatements.getHomeData(player.getName())); //TODO: ASYNC
+            for(int i =0; i< jsonArray.size(); i++){
+                JSONObject jsonObject = (JSONObject) jsonArray.get(i);
+                homes.add(jsonObject.get("homename").toString().replace("\"", ""));
+                Sethome.homeMap.put(player, homes);
+            }
+        } catch (ParseException | NullPointerException e) {
+
+        }
+
+    }
+
+    public static HashMap<Player, List<String>> homeMap = new HashMap<>();
+
     @Override
-    public List<String> onTabComplete(CommandSender commandSender, Command command, String s, String[] strings) {
-        return null;
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+
+
+        return homeMap.get(sender);
     }
 }
