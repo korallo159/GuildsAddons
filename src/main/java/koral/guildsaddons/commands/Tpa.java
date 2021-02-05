@@ -1,10 +1,8 @@
 package koral.guildsaddons.commands;
 
-;
 import koral.guildsaddons.GuildsAddons;
 import koral.guildsaddons.listeners.PluginChannelListener;
 import koral.guildsaddons.util.Cooldowns;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -13,7 +11,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.json.simple.JSONObject;
 
 import java.util.HashMap;
 
@@ -23,6 +20,7 @@ public class Tpa implements CommandExecutor {
     final String tpaPrefix = "§2[§aTPA§2] ";
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if(args.length == 0) return false;
             if(sender instanceof Player){
                 Player player = (Player) sender;
         if(command.getName().equalsIgnoreCase("tpa") && args.length == 1) {

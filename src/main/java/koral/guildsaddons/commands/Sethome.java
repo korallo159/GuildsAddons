@@ -12,6 +12,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffectType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -21,6 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Sethome implements CommandExecutor, TabExecutor {
+
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.plugin, () -> {
@@ -40,7 +43,7 @@ public class Sethome implements CommandExecutor, TabExecutor {
                     owner = homeName.substring(0, homeName.indexOf(":"));
                     homeName = homeName.substring(homeName.indexOf(":") + 1);
                 }
-                teleportHome(player, owner, homeName);
+                homeTimer(player, owner, homeName, player.getLocation(), 10);
             } else if (command.getName().equalsIgnoreCase("delhome")) {
                 delHone(player, homeName);
             } else
@@ -64,7 +67,6 @@ public class Sethome implements CommandExecutor, TabExecutor {
             jsonArray = new JSONArray();
         }
 
-        if (jsonArray.size() >= getHomeLimit(player)) {
             boolean was = false;
             for (int i = 0; i < jsonArray.size(); i++) {
                 JSONObject json = (JSONObject) jsonArray.get(i);
@@ -80,7 +82,7 @@ public class Sethome implements CommandExecutor, TabExecutor {
                 player.sendMessage("Nie posiadasz takiego home");
                 return;
             }
-        }
+
     }
 
     private void setHome(Player player, String arg) {
@@ -148,22 +150,35 @@ public class Sethome implements CommandExecutor, TabExecutor {
 
     public static void homesCompleterGet(Player player){
         List<String> homes = new ArrayList<>();
-        JSONArray jsonArray;
+        JSONArray jsonArray = null;
         JSONParser jsonParser = new JSONParser();
+        homeMap.put(player.getName(), null);
         try {
             jsonArray = (JSONArray) jsonParser.parse(PlayersStatements.getHomeData(player.getName())); //TODO: ASYNC
             for(int i =0; i< jsonArray.size(); i++){
                 JSONObject jsonObject = (JSONObject) jsonArray.get(i);
                 homes.add(jsonObject.get("homename").toString().replace("\"", ""));
-                Sethome.homeMap.put(player, homes);
+                Sethome.homeMap.put(player.getName(), homes);
             }
         } catch (ParseException | NullPointerException e) {
 
         }
 
     }
+    private void homeTimer(Player player, String owner, String homename, Location lastLocation, int secondsLeft) {
+        if (player.getLocation().distance(lastLocation) > 1) {
+            player.sendMessage("§cPoruszyłeś się! Teleportacja anulowana.");
+            player.removePotionEffect(PotionEffectType.CONFUSION);
+            player.removePotionEffect(PotionEffectType.BLINDNESS);
+        } else if (secondsLeft <= 0) {
+            teleportHome(player, owner, homename);
+        } else {
+            player.sendTitle("§5§lTeleportacja", "§9Nie ruszaj się, za §a " + secondsLeft + "s §9 zostaniesz przeteleportowany", 0, 22, 5);
+            Bukkit.getScheduler().runTaskLater(GuildsAddons.plugin, () -> homeTimer(player, owner, homename, lastLocation,secondsLeft - 1), 20);
+        }
+    }
 
-    public static HashMap<Player, List<String>> homeMap = new HashMap<>();
+    public static HashMap<String, List<String>> homeMap = new HashMap<>();
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {

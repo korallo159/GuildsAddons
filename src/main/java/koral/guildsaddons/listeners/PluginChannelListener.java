@@ -26,14 +26,6 @@ public class PluginChannelListener implements PluginMessageListener {
         try {
             DataInputStream in = new DataInputStream(new ByteArrayInputStream(message));
             String subchannel = in.readUTF();
-            if (subchannel.equals("ChatChannel") && GuildsAddons.getPlugin(GuildsAddons.class).getConfig().getBoolean("spawnServer")) {
-                if (Bukkit.getOnlinePlayers().isEmpty()) return;
-                short length = in.readShort();
-                byte[] data = new byte[length];
-                in.readFully(data);
-                String s = new String(data);
-                Bukkit.broadcastMessage(s);
-            }
             if (subchannel.equals("TpaChannel")) {
                 short length = in.readShort();
                 byte[] data = new byte[length];
