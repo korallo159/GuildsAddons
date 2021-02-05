@@ -5,7 +5,9 @@ import koral.guildsaddons.GuildsAddons;
 import koral.guildsaddons.database.statements.PlayersStatements;
 import koral.guildsaddons.model.Home;
 import koral.sectorserver.util.Teleport;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -43,7 +45,9 @@ public class Sethome implements CommandExecutor, TabExecutor {
                     owner = homeName.substring(0, homeName.indexOf(":"));
                     homeName = homeName.substring(homeName.indexOf(":") + 1);
                 }
-                homeTimer(player, owner, homeName, player.getLocation(), 10);
+                if(homeMap.containsKey(player.getName()) && homeMap.get(player.getName()).contains(args[0]))
+                         homeTimer(player, owner, homeName, player.getLocation(), 10);
+                else sender.sendMessage(new TextComponent(ChatColor.RED + "Nie masz takiego home!"));
             } else if (command.getName().equalsIgnoreCase("delhome")) {
                 delHone(player, homeName);
             } else
@@ -139,7 +143,6 @@ public class Sethome implements CommandExecutor, TabExecutor {
             JSONObject jsonObject = (JSONObject) jsonArray.get(i);
             if (jsonObject.get("homename").toString().replace("\"", "").equalsIgnoreCase(homeName)) {
                 Home home = new Gson().fromJson(jsonObject.toJSONString(), Home.class);
-                player.sendMessage("Teleportowanie na home " + homeName);
                 Bukkit.getScheduler().runTask(GuildsAddons.plugin, () -> Teleport.teleport(player, home.getLocation()));
                 return true;
             }
@@ -158,7 +161,7 @@ public class Sethome implements CommandExecutor, TabExecutor {
             for(int i =0; i< jsonArray.size(); i++){
                 JSONObject jsonObject = (JSONObject) jsonArray.get(i);
                 homes.add(jsonObject.get("homename").toString().replace("\"", ""));
-                Sethome.homeMap.put(player.getName(), homes);
+                homeMap.put(player.getName(), homes);
             }
         } catch (ParseException | NullPointerException e) {
 
@@ -184,6 +187,6 @@ public class Sethome implements CommandExecutor, TabExecutor {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
 
 
-        return homeMap.get(sender);
+        return homeMap.get(sender.getName());
     }
 }

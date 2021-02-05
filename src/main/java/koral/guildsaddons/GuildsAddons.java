@@ -2,7 +2,6 @@ package koral.guildsaddons;
 
 import koral.guildsaddons.commands.SetRtp;
 import koral.guildsaddons.commands.Sethome;
-import koral.guildsaddons.commands.Tpa;
 import koral.guildsaddons.database.DatabaseConnection;
 import koral.guildsaddons.database.statements.Table;
 import koral.guildsaddons.listeners.*;
@@ -41,7 +40,6 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         reloadPlugin();
 
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-        getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", new PluginChannelListener());
         getServer().getPluginManager().registerEvents(new PlayerInteract(), this);
         getServer().getPluginManager().registerEvents(new DeletenMending(), this);
         getServer().getPluginManager().registerEvents(new DropCollector(), this);
@@ -60,10 +58,6 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(stoneDrop, this);
         getCommand("turbodrop").setExecutor(stoneDrop);
         getCommand("drop").setExecutor(stoneDrop);
-        Tpa tpa = new Tpa();
-        getCommand("tpa").setExecutor(tpa);
-        getCommand("tpaccept").setExecutor(tpa);
-        getCommand("tpdeny").setExecutor(tpa);
         getCommand("setrtp").setExecutor(new SetRtp());
 
         Sethome setHome = new Sethome();

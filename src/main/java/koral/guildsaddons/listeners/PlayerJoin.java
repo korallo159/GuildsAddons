@@ -16,12 +16,6 @@ public class PlayerJoin implements Listener {
         Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> {
             PlayersStatements.createPlayerQuery(e.getPlayer());
         });
-        if(PluginChannelListener.tpaTeleport.containsKey(e.getPlayer().getName())){
-            Player target = Bukkit.getPlayer(PluginChannelListener.tpaTeleport.get(e.getPlayer().getName()));
-            Bukkit.getScheduler().runTask(GuildsAddons.getPlugin(), () -> e.getPlayer().teleport(target.getLocation()));
-            System.out.println(PluginChannelListener.tpaTeleport.get(e.getPlayer().getName()));
-            PluginChannelListener.tpaTeleport.remove(e.getPlayer().getName());
-        }
         Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> homesCompleterGet(e.getPlayer()));
     }
 

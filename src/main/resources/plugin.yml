@@ -16,16 +16,6 @@ commands:
   setrtp:
     description: ustawia rtp
     permission: guildsaddons.setrtp
-  tpa:
-    description: tpa request
-    permission: guildsaddons.tpa
-    usage: /tpa <nick>
-  tpaccept:
-    description: tpa request
-    permission: guildsaddons.tpa
-  tpdeny:
-    description: tpa request
-    permission: guildsaddons.tpa
   delhome:
     permission: guildsaddons.delhome
     usage: /sethome <nazwa>
