@@ -47,7 +47,7 @@ public class Stoniarki implements Listener {
         }
     }
 
-    @EventHandler(priority =  EventPriority.HIGHEST)
+    @EventHandler(priority =  EventPriority.HIGH)
     public void onBlockBreak(BlockBreakEvent ev) {
         if (ev.isCancelled()) return;
         if (stone.contains(ev.getBlock().getLocation()))
@@ -59,6 +59,7 @@ public class Stoniarki implements Listener {
             stone.remove(ev.getBlock().getLocation().add(0, 1, 0));
             config.config.set("stoniarki", stoniarki);
             config.save();
+            ev.setDropItems(false);
         }
     }
     @EventHandler(priority = EventPriority.HIGHEST)

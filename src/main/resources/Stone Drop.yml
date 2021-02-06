@@ -1,3 +1,4 @@
-STONE: 50
-COBBLESTONE: 25
-IRON_INGOT: 25
+# <Typ>: <podstawowa szansa> <bonus z fortuny> <permisja1>:<bonus1> <permisja2>:<bonus2>...
+STONE: .5 .05 drop.vip:.2 drop.svip:.3
+COBBLESTONE: 1
+IRON_INGOT: .1 .02 drop.vip:.1 drop.giga_iron:.3

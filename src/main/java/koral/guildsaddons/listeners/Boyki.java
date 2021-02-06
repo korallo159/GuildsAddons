@@ -28,6 +28,7 @@ public class Boyki implements Listener {
         else if (ev.getItemInHand().isSimilar(itemSandFarmer))  consumer = loc -> setBlock(loc, Material.SAND);
         else return;
 
+        ev.setCancelled(true);
         Bukkit.getScheduler().runTask(GuildsAddons.plugin, () -> {
             ev.getBlock().setType(Material.AIR, false);
             consumer.accept(ev.getBlock().getLocation().add(.5, .5, .5));

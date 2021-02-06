@@ -9,3 +9,7 @@ ThrowingTnt:
   power_of_explosion: 2.0
   power_of_throwing: 2.5
   ticks_to_explosion: 200
+
+Permnames:
+  drop.vip: §eVIP
+  drop.svip: §bSVIP

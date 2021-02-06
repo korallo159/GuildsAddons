@@ -1,7 +1,6 @@
 package koral.guildsaddons.listeners;
 
 import com.google.common.collect.Lists;
-import koral.guildsaddons.Ciąg;
 import koral.guildsaddons.GuildsAddons;
 import koral.guildsaddons.managers.ConfigManager;
 import org.bukkit.Bukkit;
@@ -24,50 +23,11 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class StoneDrop implements Listener, TabExecutor {
-    public static int multiplier = 1;
-
-    static final Ciąg<Material> ciag = new Ciąg<>();
-
-    private static final String tagPrefix = "GuildsAddonsTurboDrop:";
-    private static final String tag = "GuildsAddonsTurboDrop";
-
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onBlockBreak(BlockBreakEvent ev) {
-        if (ev.getPlayer().getGameMode() == GameMode.CREATIVE)
-            return;
-        if (!ev.isCancelled() && ev.isDropItems() && ev.getBlock().getType() == Material.STONE) {
-            ev.setDropItems(false);
-            int multiplier = StoneDrop.multiplier;
-            if (ev.getPlayer().getScoreboardTags().contains(StoneDrop.tag)) {
-                for (String tag : ev.getPlayer().getScoreboardTags())
-                    if (tag.startsWith(tagPrefix)) {
-                        long finalTime = Long.parseLong(tag.substring(tagPrefix.length()));
-                        if (finalTime < System.currentTimeMillis()) {
-                            ev.getPlayer().removeScoreboardTag(StoneDrop.tag);
-                            ev.getPlayer().removeScoreboardTag(tag);
-                        } else
-                            multiplier++;
-                        break;
-                    }
-            }
-
-            for (int i = 0; i < multiplier; i++) {
-                ev.getPlayer().giveExp(GuildsAddons.plugin.getConfig().getInt("exp from blocks", 0));
-                Material mat = ciag.losuj();
-                if (!ev.getPlayer().getScoreboardTags().contains(unwantedTag(mat)))
-                    ev.getPlayer().getInventory().addItem(new ItemStack(mat)).forEach((count, cannceledItem) -> {
-                        cannceledItem.setAmount(count);
-                        ev.getBlock().getWorld().dropItem(ev.getBlock().getLocation(), cannceledItem);
-                    });
-
-            }
-        }
-    }
-
     public static class Holder implements InventoryHolder {
         static final ItemStack emptySlot;
         static {
@@ -80,27 +40,48 @@ public class StoneDrop implements Listener, TabExecutor {
         }
         Inventory inv;
 
-        int slotIndex; // dummy
-        public Holder(Player p, Map<Material, Double> changeMap) {
-            inv = Bukkit.createInventory(this, ((changeMap.size() - 1) / 9 + 1) * 9, ChatColor.DARK_RED + "" + ChatColor.BOLD + "Drop ze Stone");
+        public Holder(Player p) {
+            inv = Bukkit.createInventory(this, ((drops.length - 1) / 9 + 1) * 9, ChatColor.DARK_RED + "" + ChatColor.BOLD + "Drop ze Stone");
             for (int i=0; i < inv.getSize(); i++) inv.setItem(i, emptySlot);
-            slotIndex = 0;
-            int[] slots = sloty(changeMap.size(), inv.getSize() / 9);
-            changeMap.forEach((mat, change) -> inv.setItem(slots[slotIndex++], refactor(p, new ItemStack(mat), changeMap)));
+            int[] slots = sloty(drops.length, inv.getSize() / 9);
+            int slotIndex = 0;
+            for (Drop drop : drops)
+                inv.setItem(slots[slotIndex++], refactor(p, new ItemStack(drop.mat), drop));
         }
         // enchantowe = włączone
         public static ItemStack refactor(Player p, ItemStack item) {
-            return refactor(p, item, ciag.szanse());
+            for (Drop drop : drops)
+                if (drop.mat == item.getType())
+                    return refactor(p, item, drop);
+            return item;
         }
+
+        static final String yes = ChatColor.GREEN + "" + ChatColor.BOLD + "✔";
+        static final String no  = ChatColor.RED   + "" + ChatColor.BOLD + "❌";
         // enchantowe = włączone
-        public static ItemStack refactor(Player p, ItemStack item, Map<Material, Double> changeMap) {
+        public static ItemStack refactor(Player p, ItemStack item, Drop drop) {
             ItemMeta meta = item.getItemMeta();
 
-            if (!meta.hasLore())
-                meta.setLore(Lists.newArrayList(ChatColor.GREEN + "Szansa: " +
-                        ChatColor.YELLOW + String.format("%.2f", changeMap.getOrDefault(item.getType(), 0d) * 100) + "%"));
+            boolean on = !p.getScoreboardTags().contains(unwantedTag(item));
 
-            if (!p.getScoreboardTags().contains(unwantedTag(item))) {
+            if (!meta.hasLore()) {
+                List<String> lore = Lists.newArrayList(
+                        ChatColor.GREEN + "Szansa: " + ChatColor.YELLOW + String.format("%.2f", drop.defaultChange * 100) + "%",
+                                "",
+                                ChatColor.BLUE + "Włączony: " + (on ? yes : no),
+                                ChatColor.BLUE + "Fortuna: "  + (drop.fortune_bonus != 0 ? yes : no)
+                        );
+                if (drop.permsMap != null) {
+                    lore.add("");
+                    drop.permsMap.forEach((perm, change) -> lore.add(
+                            ChatColor.GOLD + GuildsAddons.plugin.getConfig().getString("Permnames." + perm, perm) +
+                                    "§8: §a+§e" + String.format("%.2f", change * 100)
+                    ));
+                }
+                meta.setLore(lore);
+            }
+
+            if (on) {
                 meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
                 meta.addEnchant(Enchantment.ARROW_INFINITE, 1, false);
             } else {
@@ -154,6 +135,67 @@ public class StoneDrop implements Listener, TabExecutor {
             return sloty;
         }
     }
+    static class Drop {
+        Material mat;
+        double defaultChange = 1;
+        double fortune_bonus = .1;
+        Map<String, Double> permsMap;
+
+        public Drop(Material mat, String[] args) {
+            this.mat = mat;
+            switch (args.length) {
+                default:
+                    permsMap = new HashMap<>();
+                    for (int i=2; i < args.length; i++) {
+                        String[] subArgs = args[i].split(":");
+                        permsMap.put(subArgs[0], Double.parseDouble(subArgs[1]));
+                    }
+                case 2:
+                    fortune_bonus = Double.parseDouble(args[1]);
+                case 1:
+                    defaultChange = Double.parseDouble(args[0]);
+                case 0:
+            }
+        }
+    }
+
+
+    public static int multiplier = 1;
+
+    private static final String tagPrefix = "GuildsAddonsTurboDrop:";
+    private static final String tag = "GuildsAddonsTurboDrop";
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onBlockBreak(BlockBreakEvent ev) {
+        if (ev.getPlayer().getGameMode() == GameMode.CREATIVE)
+            return;
+        if (!ev.isCancelled() && ev.isDropItems() && ev.getBlock().getType() == Material.STONE) {
+            ev.setDropItems(false);
+            int multiplier = StoneDrop.multiplier;
+            if (ev.getPlayer().getScoreboardTags().contains(StoneDrop.tag)) {
+                for (String tag : ev.getPlayer().getScoreboardTags())
+                    if (tag.startsWith(tagPrefix)) {
+                        long finalTime = Long.parseLong(tag.substring(tagPrefix.length()));
+                        if (finalTime < System.currentTimeMillis()) {
+                            ev.getPlayer().removeScoreboardTag(StoneDrop.tag);
+                            ev.getPlayer().removeScoreboardTag(tag);
+                        } else
+                            multiplier++;
+                        break;
+                    }
+            }
+
+            for (int i = 0; i < multiplier; i++) {
+                ev.getPlayer().giveExp(GuildsAddons.plugin.getConfig().getInt("exp from blocks", 0));
+                for (Drop drop : drops)
+                    if (!ev.getPlayer().getScoreboardTags().contains(unwantedTag(drop.mat)))
+                        ev.getPlayer().getInventory().addItem(new ItemStack(drop.mat)).forEach((count, cannceledItem) -> {
+                            cannceledItem.setAmount(count);
+                            ev.getBlock().getWorld().dropItem(ev.getBlock().getLocation(), cannceledItem);
+                        });
+            }
+        }
+    }
     @EventHandler
     public void onInventoryClick(InventoryClickEvent ev) {
         ItemStack item = ev.getCurrentItem();
@@ -174,7 +216,7 @@ public class StoneDrop implements Listener, TabExecutor {
     }
 
     public static void openDropInv(Player p) {
-        p.openInventory(new Holder(p, ciag.szanse()).getInventory());
+        p.openInventory(new Holder(p).getInventory());
     }
 
     static String unwantedTag(Material mat) {
@@ -184,12 +226,17 @@ public class StoneDrop implements Listener, TabExecutor {
         return unwantedTag(item.getType());
     }
 
+
+    static Drop[] drops;
+    private static int drops_index; // dummy
     public static ConfigManager config = new ConfigManager("Stone Drop.yml");
     public static void reload() {
         config.reloadCustomConfig();
-        ciag.wyczyść();
 
-        config.config.getValues(false).forEach((material, change) -> ciag.dodaj(Material.valueOf(material.toUpperCase()), (int) change));
+        Map<String, Object> map = config.config.getValues(false);
+        drops = new Drop[map.size()];
+        drops_index = 0;
+        map.forEach((mat, args) -> drops[drops_index++] = new Drop(Material.valueOf(mat.toUpperCase()), ((String) args).split(" ")));
     }
 
     @Override
