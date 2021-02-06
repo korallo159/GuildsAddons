@@ -77,13 +77,13 @@ public class Sethome implements CommandExecutor, TabExecutor {
                 if (json.get("homename").toString().replace("\"", "").equalsIgnoreCase(homeName)) {
                     jsonArray.remove(i);
                     PlayersStatements.setHomeData(player, jsonArray.toJSONString()); //TODO ASYNC
-                    player.sendMessage("Usunięto home " + homeName);
+                    player.sendMessage("§cUsunięto home " + homeName);
                     Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> homesCompleterGet(player));
                     return;
                 }
             }
             if (!was) {
-                player.sendMessage("Nie posiadasz takiego home");
+                player.sendMessage("§c Nie posiadasz takiego home");
                 return;
             }
 
@@ -108,7 +108,7 @@ public class Sethome implements CommandExecutor, TabExecutor {
                 }
             }
             if (!was) {
-                player.sendMessage("Nie możesz postawić kolejnego home");
+                player.sendMessage("§c Nie możesz postawić kolejnego home, wykorzystałeś maksymalną ilość /home dla twojej rangi");
                 return;
             }
         }
@@ -118,7 +118,7 @@ public class Sethome implements CommandExecutor, TabExecutor {
         Gson gson = new GsonBuilder().create();
         jsonArray.add(gson.toJsonTree(home));
         PlayersStatements.setHomeData(player, jsonArray.toJSONString()); //TODO ASYNC
-        player.sendMessage("Ustawiono home " + arg);
+        player.sendMessage("§aUstawiono home " + arg);
         Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> homesCompleterGet(player));
     }
 
