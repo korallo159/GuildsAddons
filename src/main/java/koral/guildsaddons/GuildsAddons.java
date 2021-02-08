@@ -1,5 +1,6 @@
 package koral.guildsaddons;
 
+import koral.guildsaddons.commands.Is;
 import koral.guildsaddons.commands.SetRtp;
 import koral.guildsaddons.commands.Sethome;
 import koral.guildsaddons.database.DatabaseConnection;
@@ -52,6 +53,7 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new InventoryClickListener(), this);
         getServer().getPluginManager().registerEvents(new InventoryCloseListener(), this);
         getServer().getPluginManager().registerEvents(new ItemPickUpListener(), this);
+        getServer().getPluginManager().registerEvents(new Is(), this);
         getCommand("schowek").setExecutor(new Schowek());
 
         StoneDrop stoneDrop = new StoneDrop();
@@ -61,9 +63,12 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getCommand("setrtp").setExecutor(new SetRtp());
 
         Sethome setHome = new Sethome();
+        Is is = new Is();
         getCommand("sethome").setExecutor(setHome);
         getCommand("delhome").setExecutor(setHome);
         getCommand("home").setExecutor(setHome);
+        getCommand("itemshop").setExecutor(is);
+        getCommand("isadmin").setExecutor(is);
 
         DatabaseConnection.configureDbConnection();
         Table.createTable();

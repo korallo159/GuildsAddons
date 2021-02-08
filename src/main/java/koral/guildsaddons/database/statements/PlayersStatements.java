@@ -179,6 +179,52 @@ public class PlayersStatements {
         return result;
     }
 
+    public static void setItemShopData(String playername, String data){
+        Connection connection = null;
+        PreparedStatement statement = null;
+        try{
+            connection = hikari.getConnection();
+
+            statement = connection.prepareStatement("SELECT * FROM Players WHERE NICK=?");
+            statement.setString(1, playername);
+            String update = "UPDATE Players SET itemshop=? WHERE NICK=?";
+            statement = connection.prepareStatement(update);
+
+            statement.setString(1, data);
+            statement.setString(2, playername);
+            statement.execute();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeAll(connection, statement);
+        }
+    }
+
+    public static String getItemShopData(String playerName){
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        String sql = "SELECT itemshop FROM Players WHERE NICK=?";
+
+        String result = null;
+
+        try{
+            connection = hikari.getConnection();
+            statement = connection.prepareStatement(sql);
+            statement.setString(1, playerName);
+            resultSet = statement.executeQuery();
+            while(resultSet.next()){
+                result =  resultSet.getString("itemshop");
+            }
+        }catch (SQLException e){
+            e.printStackTrace();
+        } finally {
+            closeAll(connection, statement, resultSet);
+        }
+
+        return result;
+    }
 
 
     private static void closeAll(AutoCloseable... toClose) {

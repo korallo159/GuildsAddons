@@ -25,6 +25,10 @@ commands:
   home:
     permission: guildsaddons.home
     usage: /home (nazwa)
+  itemshop:
+    permission: guildsaddons.itemshop
+    usage: /is
+  isadmin:
 
 permissions:
   home.others:
