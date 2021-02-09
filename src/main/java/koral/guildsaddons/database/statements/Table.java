@@ -7,32 +7,29 @@ import java.sql.SQLException;
 import static koral.guildsaddons.database.DatabaseConnection.hikari;
 
 public class Table {
-
-    public static void createTable() {
-        Connection connection = null;
-        PreparedStatement statement = null;
-        String create = "CREATE TABLE IF NOT EXISTS Players(NICK VARCHAR(16), UUID VARCHAR(36), playerdata TINYTEXT, homes TEXT DEFAULT '[]', itemshop TEXT DEFAULT '[]', PRIMARY KEY (NICK))";
-
-        try {
-            connection = hikari.getConnection();
-            statement = connection.prepareStatement(create);
-            statement.execute();
+    public static void createTables() {
+        try (Connection connection = hikari.getConnection()) {
+            for (String create : new String[]{
+                    "CREATE TABLE IF NOT EXISTS Players(" +
+                            "NICK VARCHAR(16), " +
+                            "UUID VARCHAR(36), " +
+                            "playerdata TINYTEXT, homes TEXT DEFAULT '[]', " +
+                            "itemshop TEXT DEFAULT '', " +
+                            "guild VARCHAR(32), " +//TODO: relacja
+                            "PRIMARY KEY (NICK))",
+                    "CREATE TABLE IF NOT EXISTS Guilds(" +
+                            "NAME VARCHAR(32), " +
+                            "TAG VARCHAR(4), " +
+                            "data TEXT, " +
+                            "PRIMARY KEY (NAME))"
+            })
+                try (PreparedStatement statement = connection.prepareStatement(create)) {
+                    statement.execute();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (statement != null)
-                try {
-                    statement.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
         }
     }
 

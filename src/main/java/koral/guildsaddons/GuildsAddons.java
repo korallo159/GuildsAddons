@@ -1,5 +1,6 @@
 package koral.guildsaddons;
 
+import koral.guildsaddons.guilds.GuildCommand;
 import koral.guildsaddons.commands.Is;
 import koral.guildsaddons.commands.SetRtp;
 import koral.guildsaddons.commands.Sethome;
@@ -70,8 +71,10 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getCommand("itemshop").setExecutor(is);
         getCommand("isadmin").setExecutor(is);
 
+        getCommand("gildia").setExecutor(new GuildCommand());
+
         DatabaseConnection.configureDbConnection();
-        Table.createTable();
+        Table.createTables();
     }
 
     @Override
