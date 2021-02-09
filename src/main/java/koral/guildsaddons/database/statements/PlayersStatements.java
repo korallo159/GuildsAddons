@@ -1,12 +1,11 @@
 package koral.guildsaddons.database.statements;
 
-import koral.guildsaddons.model.Home;
+import koral.guildsaddons.guilds.Guild;
 import org.bukkit.entity.Player;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import javax.security.auth.login.AccountLockedException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,55 +14,26 @@ import java.util.Map;
 
 import static koral.guildsaddons.database.DatabaseConnection.hikari;
 
-public class PlayersStatements {
+public class PlayersStatements extends Statements {
+    private static String standardGetter(String columnLabel, String playerName) {
+        return stringGetter(
+                "SELECT " + columnLabel + " FROM Players WHERE NICK=?",
+                resultSet -> resultSet.next() ? resultSet.getString(columnLabel) : null,
+                playerName
+        );
+    }
+
 
     // Sync
     public static void createPlayerQuery(Player player) {
-        Connection connection = null;
-        PreparedStatement statement = null;
-        String update = "INSERT INTO Players (NICK, UUID) VALUES (?,?) ON DUPLICATE KEY UPDATE NICK=?";
-
-
-        try {
-            connection = hikari.getConnection();
-            statement = connection.prepareStatement("SELECT * FROM Players WHERE NICK=?");
-            statement.setString(1, player.getName());
-            statement = connection.prepareStatement(update);
-            statement.setString(1, player.getName());
-            statement.setString(2, player.getUniqueId().toString());
-            statement.setString(3, player.getName());
-            statement.execute();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            closeAll(connection, statement);
-        }
+        stringSetter("INSERT INTO Players (NICK, UUID) VALUES (?,?) ON DUPLICATE KEY UPDATE NICK=?",
+                player.getName(), player.getUniqueId().toString(), player.getName());
     }
 
-    // Async
-    public static void setPlayerData(Player player, String data){
-        Connection connection = null;
-        PreparedStatement statement = null;
-        try{
-            connection = hikari.getConnection();
-
-            statement = connection.prepareStatement("SELECT * FROM Players WHERE NICK=?");
-            statement.setString(1, player.getName());
-            String update = "UPDATE Players SET playerdata=? WHERE NICK=?";
-            statement = connection.prepareStatement(update);
-
-            statement.setString(1, data);
-            statement.setString(2, player.getName());
-            statement.execute();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            closeAll(connection, statement);
-        }
+    public static void setPlayerData(Player player, String data) {
+        stringSetter("UPDATE Players SET playerdata=? WHERE NICK=?", data, player.getName());
     }
 
-    // Async
     public static void updatePlayerData(Player player, Map<String, Integer> updateMap){
         Connection connection = null;
         PreparedStatement statement = null;
@@ -106,134 +76,31 @@ public class PlayersStatements {
         }
     }
 
-    // Async
     public static String getMysqlPlayerData(Player player) {
-        Connection connection = null;
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        String sql = "SELECT playerdata FROM Players WHERE NICK=?";
-
-        String result = null;
-
-        try{
-            connection = hikari.getConnection();
-            statement = connection.prepareStatement(sql);
-            statement.setString(1, player.getName());
-            resultSet = statement.executeQuery();
-            while(resultSet.next()) {
-                result = resultSet.getString("playerdata");
-            }
-        }catch (SQLException e){
-            e.printStackTrace();
-        } finally {
-            closeAll(connection, statement, resultSet);
-        }
-
-        return result;
+        return standardGetter("playerdata", player.getName());
     }
 
     public static void setHomeData(Player player, String data){
-        Connection connection = null;
-        PreparedStatement statement = null;
-        try{
-            connection = hikari.getConnection();
-
-            statement = connection.prepareStatement("SELECT * FROM Players WHERE NICK=?");
-            statement.setString(1, player.getName());
-            String update = "UPDATE Players SET homes=? WHERE NICK=?";
-            statement = connection.prepareStatement(update);
-
-            statement.setString(1, data);
-            statement.setString(2, player.getName());
-            statement.execute();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            closeAll(connection, statement);
-        }
+        stringSetter("UPDATE Players SET homes=? WHERE NICK=?", data, player.getName());
     }
-
     public static String getHomeData(String playerName){
-        Connection connection = null;
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        String sql = "SELECT homes FROM Players WHERE NICK=?";
-
-        String result = null;
-
-        try{
-            connection = hikari.getConnection();
-            statement = connection.prepareStatement(sql);
-            statement.setString(1, playerName);
-            resultSet = statement.executeQuery();
-            while(resultSet.next()){
-                result = resultSet.getString("homes");
-            }
-        }catch (SQLException e){
-            e.printStackTrace();
-        } finally {
-            closeAll(connection, statement, resultSet);
-        }
-
-        return result;
+        return standardGetter("homes", playerName);
     }
 
     public static void setItemShopData(String playername, String data){
-        Connection connection = null;
-        PreparedStatement statement = null;
-        try{
-            connection = hikari.getConnection();
-
-            statement = connection.prepareStatement("SELECT * FROM Players WHERE NICK=?");
-            statement.setString(1, playername);
-            String update = "UPDATE Players SET itemshop=? WHERE NICK=?";
-            statement = connection.prepareStatement(update);
-
-            statement.setString(1, data);
-            statement.setString(2, playername);
-            statement.execute();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            closeAll(connection, statement);
-        }
+        stringSetter("UPDATE Players SET itemshop=? WHERE NICK=?", data, playername);
     }
-
     public static String getItemShopData(String playerName){
-        Connection connection = null;
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        String sql = "SELECT itemshop FROM Players WHERE NICK=?";
-
-        String result = null;
-
-        try{
-            connection = hikari.getConnection();
-            statement = connection.prepareStatement(sql);
-            statement.setString(1, playerName);
-            resultSet = statement.executeQuery();
-            while(resultSet.next()){
-                result =  resultSet.getString("itemshop");
-            }
-        }catch (SQLException e){
-            e.printStackTrace();
-        } finally {
-            closeAll(connection, statement, resultSet);
-        }
-
-        return result;
+        return standardGetter("itemshop", playerName);
     }
 
-
-    private static void closeAll(AutoCloseable... toClose) {
-        for (AutoCloseable closeable : toClose)
-            if (closeable != null)
-                try {
-                    closeable.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+    public static void setGuild(String playerName, Guild guild) {
+        stringSetter("UPDATE Players SET guild=? WHERE NICK=?", guild == null ? null : guild.name, playerName);
+    }
+    public static Guild getGuild(String playerName) {
+        return GuildStatements.fromName(getGuildName(playerName));
+    }
+    public static String getGuildName(String playerName) {
+        return standardGetter("guild", playerName);
     }
 }
