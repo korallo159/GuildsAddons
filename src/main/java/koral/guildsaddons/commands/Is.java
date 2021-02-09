@@ -1,9 +1,11 @@
 package koral.guildsaddons.commands;
 
 import com.google.gson.Gson;
+import koral.guildsaddons.GuildsAddons;
 import koral.guildsaddons.database.statements.PlayersStatements;
+import koral.guildsaddons.managers.ConfigManager;
+import koral.guildsaddons.util.Cooldowns;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -14,24 +16,33 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
 
 public class Is implements TabExecutor, Listener {
 
+    public static HashMap<String, Inventory> inventoryMap = new HashMap<>();
+    ConfigManager config = new ConfigManager("itemshop.yml");
+    static Cooldowns cooldowns = new Cooldowns(new HashMap<>());
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         if (command.getName().equalsIgnoreCase("isadmin")) {
             addToPlayerItemShop(args[0], args[1], Integer.valueOf(args[2]));
         }
-        if (command.getName().equalsIgnoreCase("itemshop")) {
-            refreshPlayerItemShop(sender.getName());
-            ((Player) sender).openInventory(inventoryMap.get(sender.getName()));
+
+        if(sender instanceof Player) {
+            Player player = (Player) sender;
+            if (command.getName().equalsIgnoreCase("itemshop")) {
+                if(!cooldowns.hasCooldown(player, 5, "Nie mozesz tego jeszcze wykonać")) {
+                    openPlayerItemShop(sender.getName());
+                }
+
+            }
         }
         return true;
     }
@@ -41,9 +52,8 @@ public class Is implements TabExecutor, Listener {
         return null;
     }
 
-    //TODO: jezeli ktos zakupi ten sam item to musi mu zwiekszyc ilosc.
     private void addToPlayerItemShop(String playername, String item, int amount) {
-
+        Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> {
         JSONObject jsonObject = null;
         String data = PlayersStatements.getItemShopData(playername);
         JSONParser jsonParser = new JSONParser();
@@ -55,24 +65,30 @@ public class Is implements TabExecutor, Listener {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-            Double ilosc = (Double) itemsMap.get(item);
+            if (itemsMap.containsKey(item)) {
+                Double ilosc = (Double) itemsMap.get(item);
 
-            itemsMap.put(item, amount + ilosc.intValue());
-            jsonObject = new JSONObject(itemsMap);
-            PlayersStatements.setItemShopData(playername, jsonObject.toJSONString());
+                itemsMap.put(item, amount + ilosc.intValue());
+                jsonObject = new JSONObject(itemsMap);
+                PlayersStatements.setItemShopData(playername, jsonObject.toJSONString());
+            } else {
+                itemsMap.put(item, amount);
+                jsonObject = new JSONObject(itemsMap);
+                PlayersStatements.setItemShopData(playername, jsonObject.toJSONString());
+            }
+
         } else {
             itemsMap = new HashMap<>();
             itemsMap.put(item, amount);
             jsonObject = new JSONObject(itemsMap);
             PlayersStatements.setItemShopData(playername, jsonObject.toJSONString());
         }
+         });
     }
 
     private void setToPlayerItemShop(String playername, String item, int amount) {
-
-        JSONObject jsonObject = null;
+        JSONObject jsonObject;
         String data = PlayersStatements.getItemShopData(playername);
-        JSONParser jsonParser = new JSONParser();
         HashMap<String, Object> itemsMap = null;
         if (!data.isEmpty()) {
             try {
@@ -81,7 +97,6 @@ public class Is implements TabExecutor, Listener {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-
             itemsMap.put(item, amount);
             jsonObject = new JSONObject(itemsMap);
             PlayersStatements.setItemShopData(playername, jsonObject.toJSONString());
@@ -91,84 +106,92 @@ public class Is implements TabExecutor, Listener {
             jsonObject = new JSONObject(itemsMap);
             PlayersStatements.setItemShopData(playername, jsonObject.toJSONString());
         }
+
     }
 
-    //TODO: jezeli jest pusty json.
-    public static HashMap<String, Inventory> inventoryMap = new HashMap<>();
-    //TODO: jezeli jest pusty json jest NULL, avoid this bro
-    private void refreshPlayerItemShop(String playername) {
-        Is.inventoryMap.put(playername, Bukkit.getServer().createInventory(null, 27, "ITEMSHOP"));
-        JSONObject jsonObject = null;
-        String data = PlayersStatements.getItemShopData(playername);
-        HashMap<String, Object> itemsMap = null;
-        try {
-            jsonObject = (JSONObject) new JSONParser().parse(data);
-            itemsMap = new Gson().fromJson(jsonObject.toString(), HashMap.class);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        if (itemsMap.containsKey("turbodrop")) {
-            for (int i = 0; i < inventoryMap.get(playername).getSize(); i++)
-                if (inventoryMap.get(playername).getItem(i) == null) {
-                    ItemStack item = turboDrop();
-                    Double amount = (Double) itemsMap.get("turbodrop");
-                    item.setAmount(amount.intValue());
-                    inventoryMap.get(playername).setItem(i, item);
-                    break;
+    private void openPlayerItemShop(String playername) { //async
+        Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> {
+            Is.inventoryMap.put(playername, Bukkit.getServer().createInventory(null, 27, "ITEMSHOP"));
+            JSONObject jsonObject = null;
+            String data = PlayersStatements.getItemShopData(playername);
+
+            if (data.isEmpty()) {
+                Bukkit.getScheduler().runTask(GuildsAddons.getPlugin(), () -> Bukkit.getPlayer(playername).openInventory(inventoryMap.get(playername)));
+                return;
+            }
+            HashMap<String, Object> itemsMap = null;
+            try {
+                jsonObject = (JSONObject) new JSONParser().parse(data);
+                itemsMap = new Gson().fromJson(jsonObject.toString(), HashMap.class);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            for (String s : config.config.getKeys(false)) {//gdzies tu jest problem
+                if (itemsMap.containsKey(s)) {
+                    for (int i = 0; i < inventoryMap.get(playername).getSize(); i++)
+                        if (inventoryMap.get(playername).getItem(i) == null) {
+                            ItemStack item = config.getConfig().getItemStack(s + ".item").clone();
+                            Double amount = (Double) itemsMap.get(s);         //zle to dziala, czasem item jest air itd, zabiera rzeczy
+                            if (amount > 64) {
+                                item.setAmount(64);
+                                int howManyStacks = (int) (amount / 64);
+                                System.out.println(howManyStacks);
+                                for (int j = 0; j < howManyStacks; j++) {
+                                    if (inventoryMap.get(playername).getItem(i + j) == null)
+                                        inventoryMap.get(playername).setItem(i + j, item);
+                                }
+                                int reszta = (amount.intValue() - 64 * howManyStacks);
+                                item.setAmount(reszta);
+                                inventoryMap.get(playername).setItem(i + howManyStacks, item);
+                                break;
+                            }
+                            item.setAmount(amount.intValue());
+                            inventoryMap.get(playername).setItem(i, item);
+                            break;
+                        }
                 }
-        }
-
+            }
+           Bukkit.getScheduler().runTask(GuildsAddons.getPlugin(), () ->Bukkit.getPlayer(playername).openInventory(inventoryMap.get(playername)));
+        });
     }
 
-    public ItemStack turboDrop(){
-        ItemStack is = new ItemStack(Material.BOOK);
-        ItemMeta itemMeta = is.getItemMeta();
-        itemMeta.setDisplayName("§4TurboDrop");
-        List<String> lore = new ArrayList<>();
-        lore.add("§ePPM aby zużyć turbodrop");
-        itemMeta.setLore(lore);
-        is.setItemMeta(itemMeta);
-        return is;
-    }
-
-    //TODO wkladanie dodaje do listy, przez co mozna przechowywac tam rzeczy.
     @EventHandler
     public void onPlayerInventoryClick(InventoryClickEvent ev) {
         Player player = (Player) ev.getWhoClicked();
         if (ev.getInventory().equals(inventoryMap.get(player.getName()))) {
-                if(ev.getCurrentItem() != null && !ev.getCurrentItem().isSimilar(turboDrop()))
-            ev.setCancelled(true);
+            if (ev.getCurrentItem() != null)
+                ev.setCancelled(true);
+
+            for (String s : config.getConfig().getKeys(false)) {
+                if (ev.getCurrentItem() != null && ev.getCurrentItem().isSimilar(config.getConfig().getItemStack(s + ".item")) && ev.getClickedInventory().equals(inventoryMap.get(player.getName())))
+                    ev.setCancelled(false);
+            }
         }
     }
 
     @EventHandler
-    public void onInventoryClose(InventoryCloseEvent ev){
+    public void onInventoryClose(InventoryCloseEvent ev) {
+        Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> {
         Player player = (Player) ev.getPlayer();
-        if(ev.getInventory().equals(inventoryMap.get(player.getName()))){
-         Inventory inv = inventoryMap.get(player.getName());
-         int amountOfItems = 0;
-         if(inv.containsAtLeast(turboDrop(), 1)){
-             for(int i =0; i<inv.getSize(); i++){
-                 ItemStack it = inv.getItem(i);
-                 if(it != null && it.isSimilar(turboDrop())){
-                   amountOfItems = amountOfItems + it.getAmount();
-                 }
-             }
-         }
-        setToPlayerItemShop(player.getName(), "turbodrop", amountOfItems);
-       }
+        if (ev.getInventory().equals(inventoryMap.get(player.getName()))) {
+            Inventory inv = inventoryMap.get(player.getName());
+            cooldowns.setSystemTime(player);
+            for (String s : config.getConfig().getKeys(false)) {
+                int amountOfItems = 0;
+                if (inv.containsAtLeast(config.getConfig().getItemStack(s + ".item"), 1)) {
+                    for (int i = 0; i < inv.getSize(); i++) {
+                        ItemStack it = inv.getItem(i);
+                        if (it != null && it.isSimilar(config.getConfig().getItemStack(s + ".item"))) {
+                            amountOfItems = amountOfItems + it.getAmount();
+                        }
+                    }
+                    System.out.println(amountOfItems);
+                    setToPlayerItemShop(player.getName(), s, amountOfItems); //todo zmienic
+                } else
+                    setToPlayerItemShop(player.getName(), s, amountOfItems);
+            }
+        }
+        });
     }
 
 }
-  /*      List<String> commandsList = new ArrayList<>();
-        String[] s = PlayersStatements.getItemShopData(playername).split(",");
-       Arrays.asList(s).forEach(value -> {
-           if(!value.isEmpty())
-           commandsList.add(value);
-       });
-      commandsList.add(komenda);
-      String[] correct = commandsList.toArray(new String[0]);
-      PlayersStatements.setItemShopData(playername, String.join(",", correct));
-    }
-
-   */
