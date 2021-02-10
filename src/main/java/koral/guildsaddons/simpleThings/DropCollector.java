@@ -1,4 +1,4 @@
-package koral.guildsaddons.listeners;
+package koral.guildsaddons.simpleThings;
 
 import org.bukkit.GameMode;
 import org.bukkit.event.EventHandler;

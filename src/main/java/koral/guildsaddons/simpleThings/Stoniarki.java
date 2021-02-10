@@ -1,4 +1,4 @@
-package koral.guildsaddons.listeners;
+package koral.guildsaddons.simpleThings;
 
 import koral.guildsaddons.GuildsAddons;
 import koral.guildsaddons.managers.ConfigManager;

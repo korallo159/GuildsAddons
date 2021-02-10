@@ -1,4 +1,4 @@
-package koral.guildsaddons.listeners;
+package koral.guildsaddons.simpleThings;
 
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;

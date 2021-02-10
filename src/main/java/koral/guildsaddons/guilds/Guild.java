@@ -6,18 +6,17 @@ import koral.guildsaddons.database.statements.PlayersStatements;
 import koral.guildsaddons.util.SerializableLocation;
 import koral.sectorserver.SectorServer;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class Guild  {
+    public static int membersLimit = 30;
+
+
     public String name;
     public String tag;
 
@@ -113,5 +112,36 @@ public class Guild  {
     }
     public static void playerQuitEvent(PlayerQuitEvent ev) {
         fromPlayer.remove(ev.getPlayer().getName().toLowerCase());
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Guild guild = (Guild) o;
+        return this.name.equals(guild.name);
+    }
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, tag, creation_date);
+    }
+
+    @Override
+    public String toString() {
+        return "Guild{" +
+                "name='" + name + '\'' +
+                ", tag='" + tag + '\'' +
+                ", leader='" + leader + '\'' +
+                ", subLeader='" + subLeader + '\'' +
+                ", members=" + members +
+                ", region='" + region + '\'' +
+                ", home=" + home +
+                ", pvp=" + pvp +
+                ", hearts=" + hearts +
+                ", level=" + level +
+                ", protect=" + protect +
+                ", creation_date=" + creation_date +
+                '}';
     }
 }

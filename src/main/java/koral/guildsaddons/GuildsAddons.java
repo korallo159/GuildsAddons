@@ -12,6 +12,7 @@ import koral.guildsaddons.schowek.InventoryClickListener;
 import koral.guildsaddons.schowek.InventoryCloseListener;
 import koral.guildsaddons.schowek.ItemPickUpListener;
 import koral.guildsaddons.schowek.Schowek;
+import koral.guildsaddons.simpleThings.*;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -50,6 +51,9 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new Cobblex(), this);
         getServer().getPluginManager().registerEvents(new PlayerJoin(), this);
         getServer().getPluginManager().registerEvents(new ThrowingTnt(), this);
+        getServer().getPluginManager().registerEvents(new EntityDamageByEntityListener(), this);
+        getServer().getPluginManager().registerEvents(new InventoryClickListener(), this);
+        getServer().getPluginManager().registerEvents(new InventoryCloseListener(), this);
 
         getServer().getPluginManager().registerEvents(new InventoryClickListener(), this);
         getServer().getPluginManager().registerEvents(new InventoryCloseListener(), this);
@@ -106,5 +110,49 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         StoneDrop.reload();
         Stoniarki.reload();
         Schowek.reload();
+        GuildCommand.reloadGuildItems();
+    }
+
+
+
+
+
+
+
+    public static int[] slots(int neededSlots, int rows) {
+        if (rows == 1)
+            switch (neededSlots) {
+                case 0: return new int[] {};
+                case 1: return new int[] {4};
+                case 2: return new int[] {3, 5};
+                case 3: return new int[] {2, 4, 6};
+                case 4: return new int[] {1, 3, 5, 7};
+                case 5: return new int[] {2, 3, 4, 5, 6};
+                case 6: return new int[] {1, 2, 3, 5, 6, 7};
+                case 7: return new int[] {1, 2, 3, 4, 5, 6, 7};
+                case 8: return new int[] {0, 1, 2, 3, 5, 6, 7, 8};
+                case 9: return new int[] {0, 1, 2, 3, 4, 5, 6, 7, 8};
+                default:return null;
+            }
+
+
+        int[] sloty = new int[neededSlots];
+
+        int ubytek = neededSlots / rows;
+        int reszta = neededSlots % rows;
+
+        int index = 0;
+
+        int mn = 0;
+
+        while (neededSlots > 0) {
+            int dodatek = reszta-- > 0 ? 1 : 0;
+            neededSlots -= ubytek + dodatek;
+            for (int i : slots(ubytek + dodatek, 1))
+                sloty[index++] = mn*9 + i;
+            mn++;
+        }
+
+        return sloty;
     }
 }

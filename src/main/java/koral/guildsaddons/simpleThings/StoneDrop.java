@@ -1,4 +1,4 @@
-package koral.guildsaddons.listeners;
+package koral.guildsaddons.simpleThings;
 
 import com.google.common.collect.Lists;
 import koral.guildsaddons.GuildsAddons;
@@ -43,7 +43,7 @@ public class StoneDrop implements Listener, TabExecutor {
         public Holder(Player p) {
             inv = Bukkit.createInventory(this, ((drops.length - 1) / 9 + 1) * 9, ChatColor.DARK_RED + "" + ChatColor.BOLD + "Drop ze Stone");
             for (int i=0; i < inv.getSize(); i++) inv.setItem(i, emptySlot);
-            int[] slots = sloty(drops.length, inv.getSize() / 9);
+            int[] slots = GuildsAddons.slots(drops.length, inv.getSize() / 9);
             int slotIndex = 0;
             for (Drop drop : drops)
                 inv.setItem(slots[slotIndex++], refactor(p, new ItemStack(drop.mat), drop));
@@ -98,42 +98,6 @@ public class StoneDrop implements Listener, TabExecutor {
             return inv;
         }
 
-        private static int[] sloty(int potrzebneSloty, int rzędy) {
-            if (rzędy == 1)
-                switch (potrzebneSloty) {
-                    case 0: return new int[] {};
-                    case 1: return new int[] {4};
-                    case 2: return new int[] {3, 5};
-                    case 3: return new int[] {2, 4, 6};
-                    case 4: return new int[] {1, 3, 5, 7};
-                    case 5: return new int[] {2, 3, 4, 5, 6};
-                    case 6: return new int[] {1, 2, 3, 5, 6, 7};
-                    case 7: return new int[] {1, 2, 3, 4, 5, 6, 7};
-                    case 8: return new int[] {0, 1, 2, 3, 5, 6, 7, 8};
-                    case 9: return new int[] {0, 1, 2, 3, 4, 5, 6, 7, 8};
-                    default:return null;
-                }
-
-
-            int[] sloty = new int[potrzebneSloty];
-
-            int ubytek = potrzebneSloty / rzędy;
-            int reszta = potrzebneSloty % rzędy;
-
-            int index = 0;
-
-            int mn = 0;
-
-            while (potrzebneSloty > 0) {
-                int dodatek = reszta-- > 0 ? 1 : 0;
-                potrzebneSloty -= ubytek + dodatek;
-                for (int i : sloty(ubytek + dodatek, 1))
-                    sloty[index++] = mn*9 + i;
-                mn++;
-            }
-
-            return sloty;
-        }
     }
     static class Drop {
         Material mat;

@@ -7,7 +7,7 @@ import java.sql.SQLException;
 
 import static koral.guildsaddons.database.DatabaseConnection.hikari;
 
-abstract class Statements {
+public abstract class Statements {
     interface StatementConsumer {
         void accept(PreparedStatement statement) throws SQLException;
     }
