@@ -15,7 +15,10 @@ public class Table {
                             "UUID VARCHAR(36), " +
                             "playerdata TINYTEXT, homes TEXT DEFAULT '[]', " +
                             "itemshop TEXT DEFAULT '', " +
-                            "guild VARCHAR(32), " +//TODO: relacja
+                            "guild VARCHAR(32), " +
+                            "kills INT, " +
+                            "deaths INT, " +
+                            "points DOUBLE, " + //TODO: relacja
                             "PRIMARY KEY (NICK))",
                     "CREATE TABLE IF NOT EXISTS Guilds(" +
                             "NAME VARCHAR(32), " +

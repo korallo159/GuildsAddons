@@ -20,6 +20,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -30,10 +31,8 @@ public class Is implements TabExecutor, Listener {
     static Cooldowns cooldowns = new Cooldowns(new HashMap<>());
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-
-        if (command.getName().equalsIgnoreCase("isadmin")) {
-            addToPlayerItemShop(args[0], args[1], Integer.valueOf(args[2]));
-        }
+        if (command.getName().equalsIgnoreCase("isadmin"))
+            AsyncaddToPlayerItemShop(args[0], args[1], Integer.valueOf(args[2]));
 
         if(sender instanceof Player) {
             Player player = (Player) sender;
@@ -49,14 +48,22 @@ public class Is implements TabExecutor, Listener {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+    if(command.getName().equalsIgnoreCase("isadmin")) {
+        List<String> list = new ArrayList<>();
+        for (String s : config.config.getKeys(false)) {
+            list.add(s);
+        }
+        if (args.length == 2) {
+            return list;
+        }
+    }
         return null;
     }
 
-    private void addToPlayerItemShop(String playername, String item, int amount) {
+    private void AsyncaddToPlayerItemShop(String playername, String item, int amount) {
         Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> {
-        JSONObject jsonObject = null;
+        JSONObject jsonObject;
         String data = PlayersStatements.getItemShopData(playername);
-        JSONParser jsonParser = new JSONParser();
         HashMap<String, Object> itemsMap = null;
         if (!data.isEmpty()) {
             try {
@@ -67,7 +74,6 @@ public class Is implements TabExecutor, Listener {
             }
             if (itemsMap.containsKey(item)) {
                 Double ilosc = (Double) itemsMap.get(item);
-
                 itemsMap.put(item, amount + ilosc.intValue());
                 jsonObject = new JSONObject(itemsMap);
                 PlayersStatements.setItemShopData(playername, jsonObject.toJSONString());
@@ -75,14 +81,14 @@ public class Is implements TabExecutor, Listener {
                 itemsMap.put(item, amount);
                 jsonObject = new JSONObject(itemsMap);
                 PlayersStatements.setItemShopData(playername, jsonObject.toJSONString());
-            }
+               }
 
         } else {
             itemsMap = new HashMap<>();
             itemsMap.put(item, amount);
             jsonObject = new JSONObject(itemsMap);
             PlayersStatements.setItemShopData(playername, jsonObject.toJSONString());
-        }
+             }
          });
     }
 
@@ -111,22 +117,22 @@ public class Is implements TabExecutor, Listener {
 
     private void openPlayerItemShop(String playername) { //async
         Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> {
-            Is.inventoryMap.put(playername, Bukkit.getServer().createInventory(null, 27, "ITEMSHOP"));
-            JSONObject jsonObject = null;
+            Is.inventoryMap.put(playername, Bukkit.getServer().createInventory(null, 27, "§4§lITEMSHOP"));
+            JSONObject jsonObject;
             String data = PlayersStatements.getItemShopData(playername);
+            HashMap<String, Object> itemsMap = null;
 
             if (data.isEmpty()) {
                 Bukkit.getScheduler().runTask(GuildsAddons.getPlugin(), () -> Bukkit.getPlayer(playername).openInventory(inventoryMap.get(playername)));
                 return;
             }
-            HashMap<String, Object> itemsMap = null;
             try {
                 jsonObject = (JSONObject) new JSONParser().parse(data);
                 itemsMap = new Gson().fromJson(jsonObject.toString(), HashMap.class);
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-            for (String s : config.config.getKeys(false)) {//gdzies tu jest problem
+            for (String s : config.config.getKeys(false))
                 if (itemsMap.containsKey(s)) {
                     for (int i = 0; i < inventoryMap.get(playername).getSize(); i++)
                         if (inventoryMap.get(playername).getItem(i) == null) {
@@ -150,7 +156,7 @@ public class Is implements TabExecutor, Listener {
                             break;
                         }
                 }
-            }
+
            Bukkit.getScheduler().runTask(GuildsAddons.getPlugin(), () ->Bukkit.getPlayer(playername).openInventory(inventoryMap.get(playername)));
         });
     }
@@ -162,10 +168,10 @@ public class Is implements TabExecutor, Listener {
             if (ev.getCurrentItem() != null)
                 ev.setCancelled(true);
 
-            for (String s : config.getConfig().getKeys(false)) {
-                if (ev.getCurrentItem() != null && ev.getCurrentItem().isSimilar(config.getConfig().getItemStack(s + ".item")) && ev.getClickedInventory().equals(inventoryMap.get(player.getName())))
-                    ev.setCancelled(false);
-            }
+            for (String s : config.getConfig().getKeys(false))
+                if (ev.getCurrentItem() != null && ev.getCurrentItem().isSimilar(config.getConfig().getItemStack(s + ".item"))
+                        && ev.getClickedInventory().equals(inventoryMap.get(player.getName())))
+                             ev.setCancelled(false);
         }
     }
 
@@ -186,8 +192,9 @@ public class Is implements TabExecutor, Listener {
                         }
                     }
                     System.out.println(amountOfItems);
-                    setToPlayerItemShop(player.getName(), s, amountOfItems); //todo zmienic
-                } else
+                    setToPlayerItemShop(player.getName(), s, amountOfItems); //todo zeby gdzies zapisalo a dopiero potem wyslalo
+                }
+                else
                     setToPlayerItemShop(player.getName(), s, amountOfItems);
             }
         }
