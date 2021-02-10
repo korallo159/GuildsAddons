@@ -21,7 +21,7 @@ public class InventoryClickListener implements Listener {
     public void onInventoryClick(InventoryClickEvent ev) {
         if (ev.getWhoClicked().getScoreboardTags().contains(scBlockTag) &&
                 (
-                     ev.getClick() == ClickType.DOUBLE_CLICK ||
+                    (ev.getClick() == ClickType.DOUBLE_CLICK) ||
                     (ev.getRawSlot() >= 0 && ev.getRawSlot() < ev.getInventory().getSize())
                 ))
             ev.setCancelled(true);

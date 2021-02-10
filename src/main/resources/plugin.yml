@@ -1,6 +1,7 @@
 name: GuildsAddons
 version: ${project.version}
 main: koral.guildsaddons.GuildsAddons
+depend: [WorldGuard, WorldEdit]
 api-version: 1.16
 commands:
   turbodrop:

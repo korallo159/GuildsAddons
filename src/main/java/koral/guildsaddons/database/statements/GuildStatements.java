@@ -70,13 +70,13 @@ public class GuildStatements extends Statements {
         }
     }
 
-    static String serialize(Guild guild) {
+    public static String serialize(Guild guild) {
         return new GsonBuilder().create().toJson(guild);
     }
-    static Guild deserialize(JSONObject json) {
+    public static Guild deserialize(JSONObject json) {
         return new Gson().fromJson(json.toJSONString(), Guild.class);
     }
-    static Guild deserialize(JsonElement json) {
+    public static Guild deserialize(JsonElement json) {
         return new Gson().fromJson(json.getAsString(), Guild.class);
     }
 }

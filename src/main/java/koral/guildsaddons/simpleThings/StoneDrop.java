@@ -29,7 +29,7 @@ import java.util.Map;
 
 public class StoneDrop implements Listener, TabExecutor {
     public static class Holder implements InventoryHolder {
-        static final ItemStack emptySlot;
+        public static final ItemStack emptySlot;
         static {
             emptySlot = new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS_PANE);
             ItemMeta meta = emptySlot.getItemMeta();

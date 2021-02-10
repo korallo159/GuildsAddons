@@ -1,5 +1,9 @@
 package koral.guildsaddons;
 
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import com.sk89q.worldguard.protection.flags.Flag;
+import com.sk89q.worldguard.protection.flags.StateFlag;
 import koral.guildsaddons.guilds.GuildCommand;
 import koral.guildsaddons.commands.Is;
 import koral.guildsaddons.commands.SetRtp;
@@ -13,29 +17,31 @@ import koral.guildsaddons.schowek.InventoryCloseListener;
 import koral.guildsaddons.schowek.ItemPickUpListener;
 import koral.guildsaddons.schowek.Schowek;
 import koral.guildsaddons.simpleThings.*;
+import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 
 public final class GuildsAddons extends JavaPlugin implements Listener {
-//TODO: v anty logout z mimi, drop ze stone z mimi, //mimiAntylog
-//TODO: v turbo drop - /turbodrop <nick> <czas> zwieksza komus drop, do zakupienia w sklepie albo eventy
-//TODO: v DROP ZE STONE - Wylaczony drop z zwyklych rud, zamiast tego szanse na to ze wydropia z zwyklego stone surowce.
-//TODO: exp z dropu
-
-//TODO: v na lootbagu - COBBLEX - Z 9 stakow cobbla w craftingu, dostajesz cobbleX, jak postawisz to wylosowuje jakis losowy item z configa
-//TODO: v STONIARKI - Nad specjalnie zcraftowanym itemem respi sie stone
-//TODO: v Autofosa - Crafting jakiegos itema co kopie do dolu
-//TODO: lootbagi z mimi
-
-//TODO: Kosz z mimi
-//TODO: Tpa miedzy serwerami
-//TODO: rzucane tnt
+    public static WorldGuardPlugin rg;
+    public static final StateFlag flagGuildCreate = new StateFlag("guildCreating", true);
 
     public static GuildsAddons plugin;
+
+
+    @Override
+    public void onLoad() {
+        plugin = this;
+
+        rg = (WorldGuardPlugin) Bukkit.getServer().getPluginManager().getPlugin("WorldGuard");
+        WorldGuard.getInstance().getFlagRegistry().register(flagGuildCreate);
+    }
     @Override
     public void onEnable() {
-        plugin = this;
 
         this.saveDefaultConfig();
 
@@ -43,6 +49,7 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         reloadPlugin();
 
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+        getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", new PluginChannelListener());
         getServer().getPluginManager().registerEvents(new PlayerInteract(), this);
         getServer().getPluginManager().registerEvents(new DeletenMending(), this);
         getServer().getPluginManager().registerEvents(new DropCollector(), this);
@@ -52,8 +59,8 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new PlayerJoin(), this);
         getServer().getPluginManager().registerEvents(new ThrowingTnt(), this);
         getServer().getPluginManager().registerEvents(new EntityDamageByEntityListener(), this);
-        getServer().getPluginManager().registerEvents(new InventoryClickListener(), this);
-        getServer().getPluginManager().registerEvents(new InventoryCloseListener(), this);
+        getServer().getPluginManager().registerEvents(new koral.guildsaddons.listeners.InventoryClickListener(), this);
+        getServer().getPluginManager().registerEvents(new koral.guildsaddons.listeners.InventoryCloseListener(), this);
 
         getServer().getPluginManager().registerEvents(new InventoryClickListener(), this);
         getServer().getPluginManager().registerEvents(new InventoryCloseListener(), this);
@@ -114,7 +121,37 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
     }
 
 
+    public interface DataOutputStreamConsumer {
+        void accept(DataOutputStream out) throws IOException;
+    }
+    public static void sendPluginMessage(DataOutputStreamConsumer outConsumer) {
+        ByteArrayOutputStream b = new ByteArrayOutputStream();
+        DataOutputStream out = new DataOutputStream(b);
 
+        try {
+            outConsumer.accept(out);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        Bukkit.getServer().sendPluginMessage(GuildsAddons.getPlugin(), "BungeeCord", b.toByteArray());
+    }
+    public static void sendPluginMessageForward(String server, String subchannel, DataOutputStreamConsumer outConsumer) {
+        sendPluginMessage(out -> {
+            out.writeUTF("Forward");
+            out.writeUTF(server);
+            out.writeUTF(subchannel);
+
+            ByteArrayOutputStream msg = new ByteArrayOutputStream();
+
+            outConsumer.accept(new DataOutputStream(msg));
+
+            byte[] msgBytes = msg.toByteArray();
+            out.writeShort(msgBytes.length);
+            out.write(msgBytes);
+        });
+    }
 
 
 

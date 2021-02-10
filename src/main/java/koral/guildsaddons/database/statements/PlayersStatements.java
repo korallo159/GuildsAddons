@@ -97,9 +97,6 @@ public class PlayersStatements extends Statements {
     public static void setGuild(String playerName, Guild guild) {
         stringSetter("UPDATE Players SET guild=? WHERE NICK=?", guild == null ? null : guild.name, playerName);
     }
-    public static Guild getGuild(String playerName) {
-        return Guild.fromName(getGuildName(playerName));
-    }
     public static String getGuildName(String playerName) {
         return standardGetter("guild", playerName);
     }
