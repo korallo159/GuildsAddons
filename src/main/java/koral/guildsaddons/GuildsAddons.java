@@ -81,6 +81,7 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getCommand("home").setExecutor(setHome);
         getCommand("itemshop").setExecutor(is);
         getCommand("isadmin").setExecutor(is);
+        getCommand("isedit").setExecutor(is);
 
         getCommand("gildia").setExecutor(new GuildCommand());
 

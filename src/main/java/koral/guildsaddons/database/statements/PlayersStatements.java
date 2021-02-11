@@ -87,11 +87,34 @@ public class PlayersStatements extends Statements {
         return standardGetter("homes", playerName);
     }
 
+
+
     public static void setItemShopData(String playername, String data){
         stringSetter("UPDATE Players SET itemshop=? WHERE NICK=?", data, playername);
     }
     public static String getItemShopData(String playerName){
         return standardGetter("itemshop", playerName);
+    }
+
+    public static void setKillsData(String playername, int kills){
+        setter("UPDATE Players SET kills=? WHERE NICK=?", statement -> {
+            statement.setInt(1, kills);
+            statement.setString(2, playername);
+        });
+    }
+
+    public static void setDeathsData(String playername, int deaths){
+        setter("UPDATE Players SET deaths=? WHERE NICK=?", statement -> {
+            statement.setInt(1, deaths);
+            statement.setString(2, playername);
+        });
+    }
+
+    public static void setPointsData(String playername, double points){
+        setter("UPDATE Players SET points=? WHERE NICK=?", statement -> {
+            statement.setDouble(1, points);
+            statement.setString(2, playername);
+        });
     }
 
     public static void setGuild(String playerName, Guild guild) {

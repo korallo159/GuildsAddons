@@ -31,16 +31,34 @@ public class Is implements TabExecutor, Listener {
     static Cooldowns cooldowns = new Cooldowns(new HashMap<>());
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (command.getName().equalsIgnoreCase("isadmin"))
-            AsyncaddToPlayerItemShop(args[0], args[1], Integer.valueOf(args[2]));
+
+        if (command.getName().equalsIgnoreCase("isadmin")) {
+            for (String s : config.getConfig().getKeys(false))
+                if (s.equals(args[1])) {
+                    AsyncaddToPlayerItemShop(args[0], args[1], Integer.valueOf(args[2]));
+                    sender.sendMessage("Pomyslnie dodano przedmiot do itemshopu gracza");
+                }
+        }
+
 
         if(sender instanceof Player) {
             Player player = (Player) sender;
+            if(command.getName().equalsIgnoreCase("isedit")){
+                switch(args[0]){
+                    case"add":
+                        config.getConfig().set(args[1] + ".item", player.getInventory().getItemInMainHand());
+                        player.sendMessage("Dodałeś do configu item");
+                        break;
+                    case"delete":
+                        config.getConfig().set(args[1] + ".item", null);
+                        player.sendMessage("usunales z configu item.");
+                        break;
+                }
+            }
             if (command.getName().equalsIgnoreCase("itemshop")) {
                 if(!cooldowns.hasCooldown(player, 5, "Nie mozesz tego jeszcze wykonać")) {
                     openPlayerItemShop(sender.getName());
                 }
-
             }
         }
         return true;
@@ -57,6 +75,7 @@ public class Is implements TabExecutor, Listener {
             return list;
         }
     }
+
         return null;
     }
 
