@@ -47,10 +47,12 @@ public class Is implements TabExecutor, Listener {
                 switch(args[0]){
                     case"add":
                         config.getConfig().set(args[1] + ".item", player.getInventory().getItemInMainHand());
+                        config.save();
                         player.sendMessage("Dodałeś do configu item");
                         break;
                     case"delete":
                         config.getConfig().set(args[1] + ".item", null);
+                        config.save();
                         player.sendMessage("usunales z configu item.");
                         break;
                 }
@@ -151,7 +153,7 @@ public class Is implements TabExecutor, Listener {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-            for (String s : config.config.getKeys(false))
+            for (String s : config.getConfig().getKeys(false))
                 if (itemsMap.containsKey(s)) {
                     for (int i = 0; i < inventoryMap.get(playername).getSize(); i++)
                         if (inventoryMap.get(playername).getItem(i) == null) {
@@ -187,8 +189,7 @@ public class Is implements TabExecutor, Listener {
             if (ev.getCurrentItem() != null)
                 ev.setCancelled(true);
 
-            for (String s : config.getConfig().getKeys(false))
-                if (ev.getCurrentItem() != null && ev.getCurrentItem().isSimilar(config.getConfig().getItemStack(s + ".item"))
+                if (ev.getCurrentItem() != null
                         && ev.getClickedInventory().equals(inventoryMap.get(player.getName())))
                              ev.setCancelled(false);
         }
