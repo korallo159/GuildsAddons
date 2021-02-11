@@ -31,6 +31,8 @@ commands:
     usage: /is
   isadmin:
     permission: guildsaddons.isadmin
+  isedit:
+    permission: guildsaddons.isedit
   gildia:
     aliases: [guild, g]
     permission: guildsaddons.gildia

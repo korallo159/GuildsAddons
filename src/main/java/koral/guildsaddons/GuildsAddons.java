@@ -58,6 +58,7 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new Cobblex(), this);
         getServer().getPluginManager().registerEvents(new PlayerJoin(), this);
         getServer().getPluginManager().registerEvents(new ThrowingTnt(), this);
+        getServer().getPluginManager().registerEvents(new EntityExplodeListener(), this);
         getServer().getPluginManager().registerEvents(new EntityDamageByEntityListener(), this);
         getServer().getPluginManager().registerEvents(new koral.guildsaddons.listeners.InventoryClickListener(), this);
         getServer().getPluginManager().registerEvents(new koral.guildsaddons.listeners.InventoryCloseListener(), this);
@@ -153,8 +154,6 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
             out.write(msgBytes);
         });
     }
-
-
 
 
     public static int[] slots(int neededSlots, int rows) {

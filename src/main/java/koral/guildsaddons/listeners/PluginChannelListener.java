@@ -2,7 +2,9 @@ package koral.guildsaddons.listeners;
 
 import koral.guildsaddons.database.statements.GuildStatements;
 import koral.guildsaddons.guilds.Guild;
+import koral.guildsaddons.guilds.GuildCommand;
 import koral.sectorserver.SectorServer;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.json.simple.JSONObject;
@@ -83,5 +85,12 @@ public class PluginChannelListener implements PluginMessageListener {
         String guildName = in.readUTF();
 
         SectorServer.doForNonNull(Guild.fromNameUnSafe(guildName), Guild::deleteUnSafe);
+    }
+    @FromForward
+    void setGuild(DataInputStream in) throws IOException {
+        String playerName = in.readUTF();
+        String guildName = in.readUTF();
+
+        SectorServer.doForNonNull(Guild.fromName(guildName), guild -> GuildCommand.setGuild(playerName, guild, false));
     }
 }

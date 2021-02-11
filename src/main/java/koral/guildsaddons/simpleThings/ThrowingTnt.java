@@ -35,6 +35,7 @@ public class ThrowingTnt implements Listener {
             PlayerInventory inv = ev.getPlayer().getInventory();
             if (inv.getItemInMainHand().isSimilar(item)) {
                 summonTnt(ev.getPlayer());
+                ev.setCancelled(true);
                 ItemStack tnt = inv.getItemInMainHand();
                 tnt.setAmount(tnt.getAmount() - 1);
                 inv.setItemInMainHand(tnt.getAmount() <= 0 ? null : tnt);

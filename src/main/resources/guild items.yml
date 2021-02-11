@@ -1,3 +1,14 @@
-STONE: 64
-DIRT: 128
-DIAMOND: 6
+upgrades:
+  - items:
+      STONE: 64
+      DIRT: 128
+      DIAMOND: 6
+    size: 50
+  - items:
+      STONE: 250
+    size: 75
+  - items:
+      DIAMOND: 50
+      EMERALD: 25
+    size: 100
+
