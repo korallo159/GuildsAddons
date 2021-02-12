@@ -11,6 +11,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
+import java.util.Objects;
+
 public class EntityDamageByEntityListener implements Listener {
     @EventHandler(priority = EventPriority.LOW)
     public void onEntityDamageByEntity(EntityDamageByEntityEvent ev) {
@@ -66,7 +68,7 @@ public class EntityDamageByEntityListener implements Listener {
         Guild g1 = Guild.fromPlayer(p1.getName());
         Guild g2 = Guild.fromPlayer(p2.getName());
 
-        if (g1.equals(g2) && !g1.pvp)
+        if (Objects.equals(g1, g2) && !g1.pvp)
             ev.setCancelled(true);
 
         return true;

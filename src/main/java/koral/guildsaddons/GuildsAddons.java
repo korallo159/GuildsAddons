@@ -2,7 +2,6 @@ package koral.guildsaddons;
 
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
-import com.sk89q.worldguard.protection.flags.Flag;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import koral.guildsaddons.guilds.GuildCommand;
 import koral.guildsaddons.commands.Is;
@@ -10,6 +9,7 @@ import koral.guildsaddons.commands.SetRtp;
 import koral.guildsaddons.commands.Sethome;
 import koral.guildsaddons.database.DatabaseConnection;
 import koral.guildsaddons.database.statements.Table;
+import koral.guildsaddons.guilds.GuildSocketForwardChannelListener;
 import koral.guildsaddons.listeners.*;
 import koral.guildsaddons.managers.ConfigManager;
 import koral.guildsaddons.schowek.InventoryClickListener;
@@ -17,6 +17,7 @@ import koral.guildsaddons.schowek.InventoryCloseListener;
 import koral.guildsaddons.schowek.ItemPickUpListener;
 import koral.guildsaddons.schowek.Schowek;
 import koral.guildsaddons.simpleThings.*;
+import koral.sectorserver.SectorServer;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -42,7 +43,6 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
     }
     @Override
     public void onEnable() {
-
         this.saveDefaultConfig();
 
         config = new ConfigManager("items.yml");
@@ -88,6 +88,8 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
 
         DatabaseConnection.configureDbConnection();
         Table.createTables();
+
+        SectorServer.registerForwardChannelListener(GuildSocketForwardChannelListener.class);
     }
 
     @Override

@@ -40,8 +40,6 @@ public class Guild  {
     public static int tntHeight = 45;
 
     public static String greetPrefix = "Wszedłeś na teren gildi ";
-    //public static int max_region_dxz = 150;
-    //public static int start_region_dxz = 50;
     public static int region_priority = 5;
 
     // [(dxz, {mat: int}})]
@@ -54,6 +52,7 @@ public class Guild  {
     public String leader; // lider
     public String subLeader; // zastępca
     public List<String> members; // reszta graczy
+    public List<String> alliances;
 
     public String region;
     public String region_world;
@@ -69,13 +68,14 @@ public class Guild  {
     public long protect; // milisekundy końca ochrony
     public long creation_date;
 
-    public Guild(String name, String tag, String leader, String subLeader, List<String> members, SerializableLocation home,
+    public Guild(String name, String tag, String leader, String subLeader, List<String> members, List<String> alliances, SerializableLocation home,
                  String region, String region_world, boolean pvp, int hearts, int level, long protect, long creation_date) {
         this.name = name;
         this.tag = tag;
         this.leader = leader;
         this.subLeader = subLeader;
         this.members = members;
+        this.alliances = alliances;
         this.home = home;
         this.region = region;
         this.region_world = region_world;
@@ -163,15 +163,11 @@ public class Guild  {
         }
     }
 
-    public boolean delete() {
-        RegionManager regions = WorldGuard.getInstance().getPlatform().getRegionContainer().get(BukkitAdapter.adapt(Bukkit.getWorld(region_world)));
-
-        try {
-            regions.removeRegion(region + "_max");
-            regions.removeRegion(region);
-        } catch (Throwable e) {
-            return false;
-        }
+    public void delete() {
+        SectorServer.sendToServer("guildRemoveRegion", "ALL", out -> {
+            out.writeUTF(region_world);
+            out.writeUTF(region);
+        });
 
         Consumer<String> forget = playerName -> {
             PlayersStatements.setGuild(playerName, null);
@@ -193,8 +189,6 @@ public class Guild  {
         GuildStatements.delete(this);
 
         Bukkit.getScheduler().runTask(GuildsAddons.getPlugin(), () -> SectorServer.doForNonNull(getHeart(), Entity::remove));
-
-        return true;
     }
     public void deleteUnSafe() {
         fromName.remove(name);

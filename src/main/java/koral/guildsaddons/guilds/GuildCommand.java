@@ -23,7 +23,6 @@ import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
@@ -34,7 +33,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class GuildCommand implements TabExecutor {
@@ -71,6 +69,7 @@ public class GuildCommand implements TabExecutor {
                     list.add("wyrzuć");
                     list.add("powiększ");
                     list.add("ustawhome");
+                    list.add("sojusz");
                     if (guild.level < Guild.upgradeCosts.size())
                         list.add("itemy");
                     if (leader) {
@@ -103,7 +102,6 @@ public class GuildCommand implements TabExecutor {
         return true;
     }
 
-    private Map<String, Guild> inviteMap = new HashMap<>();
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> ((Predicate<Player>) p -> {
@@ -146,6 +144,11 @@ public class GuildCommand implements TabExecutor {
                     return pvp(p);
                 case "itemy":
                     return itemy(p);
+                case "sojusz":
+                    return sojusz(p, args);
+                case "usuńsojusz":
+                case "usunsojusz":
+                    return usuńsojusz(p, args);
                 case "powiększ":
                 case "powieksz":
                     return powiększ(p);
@@ -157,6 +160,7 @@ public class GuildCommand implements TabExecutor {
         }).test(sender instanceof Player ? (Player) sender : null));
         return true;
     }
+
 
     boolean playerOnline(String playerName) {
         for (String name : PluginChannelListener.playerCompleterList)
@@ -185,13 +189,12 @@ public class GuildCommand implements TabExecutor {
             return true;
         }
         return false;
-
     }
 
-    BlockVector3 getMinRegionPoint(Location loc, int dxz) {
+    static BlockVector3 getMinRegionPoint(Location loc, int dxz) {
         return BlockVector3.at((int) (loc.getBlockX() - dxz / 2d), 0,   (int) (loc.getBlockZ() - dxz / 2d));
     }
-    BlockVector3 getMaxRegionPoint(Location loc, int dxz) {
+    static BlockVector3 getMaxRegionPoint(Location loc, int dxz) {
         return BlockVector3.at((int) (loc.getBlockX() + dxz / 2d), 256, (int) (loc.getBlockZ() + dxz / 2d));
     }
 
@@ -241,9 +244,9 @@ public class GuildCommand implements TabExecutor {
 
 
         long now = System.currentTimeMillis();
-        guild = new Guild(name, tag, p.getName(), null, new ArrayList<>(), SerializableLocation.fromLocation(loc),
-                region.getId(), loc.getWorld().getName(), false, 3, 1,
-                now + 24*60*60*1000 /* 24h ochrony startowej*/, now);
+        guild = new Guild(name, tag, p.getName(), null, new ArrayList<>(), new ArrayList<>(),
+                SerializableLocation.fromLocation(loc), region.getId(), loc.getWorld().getName(),
+                false, 3, 1, now + 24*60*60*1000 /* 24h ochrony startowej*/, now);
 
 
         region.setFlag(Flags.GREET_MESSAGE, Guild.greetPrefix + guild.name);
@@ -336,7 +339,7 @@ public class GuildCommand implements TabExecutor {
         if (guild == null)                     return msg(p, "Nie posiadasz gildii");
         if (!p.getName().equals(guild.leader)) return msg(p, "Musisz być liderem gildi aby to zrobić");
 
-        if (!guild.delete()) return msg(p, "Musisz być na tym samym sektorze co twoja gildia aby ją usunąć");
+        guild.delete();
 
         guild.sendToMembers("%s usunął gildię", p.getDisplayName());
         return true;
@@ -356,14 +359,12 @@ public class GuildCommand implements TabExecutor {
 
         setGuild(p.getName(), null);
 
-        try {
-            ProtectedCuboidRegion region = guild.getRegion();
-            DefaultDomain members = region.getMembers();
-            members.removePlayer(p.getName());
-            region.setMembers(members);
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
+
+        SectorServer.sendToServer("removeMember", "ALL", out -> {
+            out.writeUTF(guild.region_world);
+            out.writeUTF(guild.region);
+            out.writeUTF(p.getName());
+        });
 
         guild.save();
         return true;
@@ -384,19 +385,19 @@ public class GuildCommand implements TabExecutor {
                 boolean deleted = false;
                 for (int i=0; i < guild.members.size(); i++)
                     if (guild.members.get(i).equalsIgnoreCase(args[1])) {
+                        args[1] = guild.members.get(1);
+
                         guild.sendToMembers("%s wyrzucił %s z gildi!", p.getDisplayName(), args[1]);
                         setGuildOnEveryServers(guild.members.remove(i), null);
 
                         deleted = true;
 
-                        try {
-                            ProtectedCuboidRegion region = guild.getRegion();
-                            DefaultDomain members = region.getMembers();
-                            members.removePlayer(args[i]);
-                            region.setMembers(members);
-                        } catch (Throwable e) {
-                            e.printStackTrace();
-                        }
+                        SectorServer.sendToServer("removeMember", "ALL", out -> {
+                            out.writeUTF(guild.region_world);
+                            out.writeUTF(guild.region);
+                            out.writeUTF(args[1]);
+                        });
+
                         break;
                     }
                 if (!deleted)
@@ -407,6 +408,9 @@ public class GuildCommand implements TabExecutor {
             return msg(p, "Nie możesz tego zrobić");
         return true;
     }
+
+    // zapraszany: gildia
+    static Map<String, Guild> inviteMap = new HashMap<>();
     boolean zaproś(Player p, String args[]) {
         if (args.length < 2) return msg(p, "/g zaproś <nick>");
 
@@ -428,10 +432,18 @@ public class GuildCommand implements TabExecutor {
             if (PlayersStatements.getGuildName(toInvite.getName()) != null) return msg(p, "Gracz posiada już gildię");
 
             inviteMap.put(toInvite.getName(), guild);
+            SectorServer.sendToServer("updateInviteMapPut", "ALL", out -> {
+                out.writeUTF(toInvite.getName());
+                out.writeUTF(guild.name);
+            });
 
             final Guild fGuild = guild;
             Bukkit.getScheduler().runTaskLater(GuildsAddons.getPlugin(), () -> {
                 if (inviteMap.remove(toInvite.getName(), fGuild)) {
+                    SectorServer.sendToServer("updateInviteMapRemove2", "ALL", out -> {
+                        out.writeUTF(toInvite.getName());
+                        out.writeUTF(fGuild.name);
+                    });
                     fGuild.sendToMembers("Zaproszenie do gildi dla gracza %s od %s wygasło", toInvite.getDisplayName(), p.getDisplayName());
                     toInvite.sendMessage(String.format("Zaproszenie do gildi %s od %s wygasło", fGuild.name, p.getDisplayName()));
                 }
@@ -452,6 +464,10 @@ public class GuildCommand implements TabExecutor {
         guild = inviteMap.remove(p.getName());
         if (guild == null) return msg(p, "Nie masz żadnego zaproszenia do gildi");
 
+        SectorServer.sendToServer("updateInviteMapRemove1", "ALL", out -> {
+            out.writeUTF(p.getName());
+        });
+
         int membersCount = guild.members.size() + 1 + (guild.subLeader == null ? 0 : 1);
         if (membersCount >= Guild.membersLimit)
             return msg(p, "Gildia " + guild.name + " osiągnieła już limit członków gildi (" + Guild.membersLimit + ")");
@@ -460,14 +476,12 @@ public class GuildCommand implements TabExecutor {
         setGuildOnEveryServers(p.getName(), guild);
         guild.save();
 
-        try {
-            ProtectedCuboidRegion region = guild.getRegion();
-            DefaultDomain members = region.getMembers();
-            members.removePlayer(p.getName());
-            region.setMembers(members);
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
+        Guild fguild = guild;
+        SectorServer.sendToServer("addMember", "ALL", out -> {
+            out.writeUTF(fguild.region_world);
+            out.writeUTF(fguild.region);
+            out.writeUTF(p.getName());
+        });
 
         return guild.sendToMembers("%s dołączył do gildi", p.getDisplayName());
     }
@@ -573,6 +587,91 @@ public class GuildCommand implements TabExecutor {
         });
         return true;
     }
+    // guild1name: guild2name
+    static Map<String, String> allyInviteMap = new HashMap<>();
+    boolean sojusz(Player p, String[] args) {
+        if (args.length < 2) return msg(p, "/g sojusz [nazwa | tag | nick]");
+
+        Guild guild = Guild.fromPlayer(p.getName());
+
+        if (guild == null)                                                              return msg(p, "Nie posiadasz gildi");
+        if (!(p.getName().equals(guild.leader) || p.getName().equals(guild.subLeader))) return msg(p, "Nie możesz tego zrobić");
+
+        Guild guild2;
+
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayerIfCached(args[1]);
+        if (offlinePlayer != null)
+            guild2 = Guild.fromPlayer(offlinePlayer.getName());
+        else if ((guild2 = Guild.fromTag(args[1])) == null)
+            guild2 = Guild.fromName(args[1]);
+
+        if (guild2 == null)                        return msg(p, "Niepoprawna gildia: " + args[0]);
+        if (guild.alliances.contains(guild2.name)) return msg(p, "Już macie nawiązany sojusz z gildią: " + guild2.name);
+
+        Guild fguild2 = guild2;
+
+        if (allyInviteMap.remove(guild2.name, guild.name)) {
+            SectorServer.sendToServer("updateAllyInviteMapRemove", "ALL", out -> {
+                out.writeUTF(fguild2.name);
+                out.writeUTF(guild.name);
+            });
+
+            guild .alliances.add(guild2.name);
+            guild2.alliances.add(guild .name);
+            guild.sendToMembers("%s przyjął zaproszenie do sojuszu z gildią %s", p.getDisplayName(), guild2.name);
+            guild2.sendToMembers("Gildia %s przyjała propozycję sojuszu", guild.name);
+
+            guild.save();
+            guild2.save();
+            return true;
+        }
+
+        allyInviteMap.put(guild.name, guild2.name);
+        SectorServer.sendToServer("updateAllyInviteMapPut", "ALL", out -> {
+            out.writeUTF(guild.name);
+            out.writeUTF(fguild2.name);
+        });
+
+        guild.sendToMembers("%s wysłał propozycje sojuszu do gildi %s, która wygaśnie za 2 minuty", p.getDisplayName(), guild2.name);
+        guild2.sendToMembers("Gildia %s wysłała do was propozycję sojuszu, która wygaśnie za 2 minuty", p.getDisplayName(), guild2.name);
+        Bukkit.getScheduler().runTaskLater(GuildsAddons.getPlugin(), () -> {
+            if (allyInviteMap.remove(guild.name, fguild2.name) && !guild.alliances.contains(fguild2.name)) {
+                guild .sendToMembers("Zaproszenie do sojuszu dla gildi %s wygasło", fguild2.name);
+                fguild2.sendToMembers("Zaproszenie do sojuszu od gildi %s wygasło", guild.name);
+            }
+        }, 20 * 60 * 2);
+
+        return true;
+    }
+    boolean usuńsojusz(Player p, String[] args) {
+        if (args.length < 2) return msg(p, "/g sojusz [nazwa | tag | nick]");
+
+        Guild guild = Guild.fromPlayer(p.getName());
+
+        if (guild == null)                                                              return msg(p, "Nie posiadasz gildi");
+        if (!(p.getName().equals(guild.leader) || p.getName().equals(guild.subLeader))) return msg(p, "Nie możesz tego zrobić");
+
+        Guild guild2;
+
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayerIfCached(args[1]);
+        if (offlinePlayer != null)
+            guild2 = Guild.fromPlayer(offlinePlayer.getName());
+        else if ((guild2 = Guild.fromTag(args[1])) == null)
+            guild2 = Guild.fromName(args[1]);
+
+        if (guild2 == null)                         return msg(p, "Niepoprawna gildia: " + args[0]);
+        if (!guild.alliances.contains(guild2.name)) return msg(p, "Nie macie nawiązanego sojuszu z gildią: " + guild2.name);
+
+        guild .alliances.remove(guild2.name);
+        guild2.alliances.remove(guild .name);
+        guild.sendToMembers("%s zerwał sojusz z gildią %s", p.getDisplayName(), guild2.name);
+        guild2.sendToMembers("Gildia %s zerwała sojuszu z wami!", guild.name);
+
+        guild.save();
+        guild2.save();
+
+        return true;
+    }
     boolean powiększ(Player p) {
         Guild guild = Guild.fromPlayer(p.getName());
 
@@ -580,7 +679,7 @@ public class GuildCommand implements TabExecutor {
         if (guild.level >= Guild.upgradeCosts.size())                                   return msg(p, "Osiągnięto już maksymalny poziom gildi");
         if (!(p.getName().equals(guild.leader) || p.getName().equals(guild.subLeader))) return msg(p, "Nie możesz tego zrobić");
 
-        for (Map.Entry<Material, Integer> entry : Guild.upgradeCosts.get(0).t2.entrySet())
+        for (Map.Entry<Material, Integer> entry : Guild.upgradeCosts.get(guild.level).t2.entrySet())
             if (!p.getInventory().contains(entry.getKey(), entry.getValue()))
                 return msg(p, "Nie posiadasz wymaganych itemków aby ulepszyć gildię. Wpisz /g itemy aby zobaczyć pełną liste potrzebnych itemów");
 
@@ -605,8 +704,12 @@ public class GuildCommand implements TabExecutor {
         guild.save();
 
         int dxz = Guild.upgradeCosts.get(guild.level - 1).t1;
-        guild.getRegion().setMinimumPoint(getMinRegionPoint(guild.getHeartLoc(), dxz));
-        guild.getRegion().setMaximumPoint(getMaxRegionPoint(guild.getHeartLoc(), dxz));
+        SectorServer.sendToServer("expandRegion", "ALL", out -> {
+            out.writeUTF(guild.name);
+            out.writeInt(dxz);
+        });
+
+        guild.sendToMembers("%s powiększył teren gildi", p.getDisplayName());
 
         return true;
     }

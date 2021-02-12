@@ -121,6 +121,19 @@ public class StoneDrop implements Listener, TabExecutor {
                 case 0:
             }
         }
+
+        public double getChange(Player player) {
+            double change = defaultChange;
+
+            change += player.getInventory().getItemInMainHand().getEnchantmentLevel(Enchantment.LOOT_BONUS_BLOCKS) * fortune_bonus;
+
+            if (permsMap != null)
+                for (Map.Entry<String, Double> entry : permsMap.entrySet())
+                    if (player.hasPermission(entry.getKey()))
+                        change += entry.getValue();
+
+            return change;
+        }
     }
 
 
@@ -152,11 +165,9 @@ public class StoneDrop implements Listener, TabExecutor {
             for (int i = 0; i < multiplier; i++) {
                 ev.getPlayer().giveExp(GuildsAddons.plugin.getConfig().getInt("exp from blocks", 0));
                 for (Drop drop : drops)
-                    if (!ev.getPlayer().getScoreboardTags().contains(unwantedTag(drop.mat)))
-                        ev.getPlayer().getInventory().addItem(new ItemStack(drop.mat)).forEach((count, cannceledItem) -> {
-                            cannceledItem.setAmount(count);
-                            ev.getBlock().getWorld().dropItem(ev.getBlock().getLocation(), cannceledItem);
-                        });
+                    if (!ev.getPlayer().getScoreboardTags().contains(unwantedTag(drop.mat)) && Math.random() < drop.getChange(ev.getPlayer()))
+                        ev.getPlayer().getInventory().addItem(new ItemStack(drop.mat)).forEach((count, cannceledItem) ->
+                                ev.getBlock().getWorld().dropItemNaturally(ev.getBlock().getLocation(), cannceledItem));
             }
         }
     }
