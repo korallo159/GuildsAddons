@@ -31,13 +31,14 @@ import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Guild  {
     //TODO: wczytywać
     public static int membersLimit = 30;
-    public static int tntHeight = 45;
+    public static int tntHeight = 48;
 
     public static String greetPrefix = "Wszedłeś na teren gildi ";
     public static int region_priority = 5;
@@ -88,7 +89,7 @@ public class Guild  {
 
     public void save() {
         GuildStatements.updatadeData(this);
-        GuildsAddons.sendPluginMessageForward("ALL", "updateGuild", out -> {
+        SectorServer.sendToServer("guild_save", "ALL", out -> {
             out.writeUTF(name);
             out.writeUTF(GuildStatements.serialize(this));
         });
@@ -98,16 +99,14 @@ public class Guild  {
     public boolean sendToMembers(String format, String... args) {
         String msg = String.format(format, args);
 
-        sendToMembersOnlyThere(msg);
-
-        GuildsAddons.sendPluginMessageForward("ALL", "guildMsg", out -> {
+        SectorServer.sendToServer("guild_msg", "ALL", out -> {
             out.writeUTF(name);
             out.writeUTF(msg);
         });
 
         return true;
     }
-    public void sendToMembersOnlyThere(String msg) {
+    void sendToMembersOnlyThere(String msg) {
         Consumer<String> send = nick -> SectorServer.doForNonNull(Bukkit.getPlayer(nick), p -> p.sendMessage(msg));
 
         send.accept(leader);
@@ -169,22 +168,16 @@ public class Guild  {
             out.writeUTF(region);
         });
 
-        Consumer<String> forget = playerName -> {
-            PlayersStatements.setGuild(playerName, null);
-            playerName = playerName.toLowerCase();
-            if (Guild.fromPlayer.containsKey(playerName))
-                Guild.fromPlayer.put(playerName, null);
-        };
+
+        Consumer<String> forget = playerName -> PlayersStatements.setGuild(playerName, null);
 
         forget.accept(leader);
         if (subLeader != null) forget.accept(subLeader);
         members.forEach(forget::accept);
 
-        final String finalGuildName = name;
-        GuildsAddons.sendPluginMessageForward("ALL", "deleteGuild", out -> out.writeUTF(finalGuildName));
 
-        fromName.remove(name);
-        fromTag.remove(tag);
+        final String finalGuildName = name;
+        SectorServer.sendToServer("guild_delete", "ALL", out -> out.writeUTF(finalGuildName));
 
         GuildStatements.delete(this);
 
@@ -207,8 +200,7 @@ public class Guild  {
     public static void playerJoinEvent(PlayerJoinEvent ev) {
         Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> {
             String guildName = PlayersStatements.getGuildName(ev.getPlayer().getName());
-            if (guildName == null)
-                fromPlayer.put(ev.getPlayer().getName().toLowerCase(), guildName == null ? null : fromName(guildName));
+            fromPlayer.put(ev.getPlayer().getName().toLowerCase(), guildName == null ? null : fromName(guildName));
         });
     }
     public static void playerQuitEvent(PlayerQuitEvent ev) {
@@ -216,9 +208,9 @@ public class Guild  {
     }
 
 
-    static Map<String, WeakReference<Guild>> fromName = new HashMap<>();
-    static Map<String, WeakReference<Guild>> fromTag = new HashMap<>();
-    static Map<String, Guild> fromPlayer = new HashMap<>();
+    public static Map<String, WeakReference<Guild>> fromName = new HashMap<>();
+    public static Map<String, WeakReference<Guild>> fromTag = new HashMap<>();
+    public static Map<String, Guild> fromPlayer = new HashMap<>();
     public static Guild fromPlayer(String nick) {
         nick = nick.toLowerCase();
 
@@ -228,6 +220,9 @@ public class Guild  {
             guild = fromName(PlayersStatements.getGuildName(nick));
 
         return guild;
+    }
+    public static Guild fromPlayerUnSafe(String nick) {
+        return fromPlayer.get(nick.toLowerCase());
     }
     public static Guild fromNameUnSafe(String name) {
         WeakReference<Guild> reference = fromName.get(name);
@@ -251,6 +246,16 @@ public class Guild  {
                 fromTag.put(guild.tag, reference);
             }
         }
+        return guild;
+    }
+    public static Guild fromString(String arg) {
+        Guild guild = fromPlayer(arg);
+
+        if (guild == null)
+            guild = fromTag(arg);
+        if (guild == null)
+            guild = fromName(arg);
+
         return guild;
     }
 

@@ -5,16 +5,33 @@ import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.domains.DefaultDomain;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
+import koral.guildsaddons.database.statements.GuildStatements;
 import koral.sectorserver.ForwardChannelListener;
 import koral.sectorserver.SectorServer;
 import org.bukkit.Bukkit;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
 @SuppressWarnings("unused")
 public class GuildSocketForwardChannelListener implements ForwardChannelListener {
+    // ogólne
+    static void msg(DataInputStream in) throws IOException {
+        String playerName = in.readUTF();
+        String msg = in.readUTF();
+
+        SectorServer.doForNonNull(Bukkit.getPlayer(playerName), p -> p.sendMessage(msg));
+    }
+
+
+    // regiony
     static RegionManager getRegions(String worldName) {
         return WorldGuard.getInstance().getPlatform().getRegionContainer().get(BukkitAdapter.adapt(Bukkit.getWorld(worldName)));
     }
@@ -68,25 +85,61 @@ public class GuildSocketForwardChannelListener implements ForwardChannelListener
         });
     }
 
+
+    // mapy
     static void updateAllyInviteMapRemove(DataInputStream in) throws IOException {
         GuildCommand.allyInviteMap.remove(in.readUTF(), in.readUTF());
     }
     static void updateAllyInviteMapPut(DataInputStream in) throws IOException {
         GuildCommand.allyInviteMap.put(in.readUTF(), in.readUTF());
     }
-    static void updateInviteMapPut(DataInputStream in) throws IOException {
+
+    static void updateInvitesAdd(DataInputStream in) throws IOException {
+        GuildCommand.invites.add(in.readUTF());
+    }
+    static void updateInvitesRemove(DataInputStream in) throws IOException {
+        GuildCommand.invites.remove(in.readUTF());
+    }
+
+
+
+    // gildie
+    static void guild_set(DataInputStream in) throws IOException {
         String playerName = in.readUTF();
         String guildName = in.readUTF();
 
-        SectorServer.doForNonNull(Guild.fromNameUnSafe(guildName), guild -> GuildCommand.inviteMap.put(playerName, guild));
+        GuildCommand.setGuild(playerName, guildName);
     }
-    static void updateInviteMapRemove1(DataInputStream in) throws IOException {
-        GuildCommand.inviteMap.remove(in.readUTF());
+
+    static void guild_msg(DataInputStream in) throws IOException {
+        String guildName = in.readUTF();
+        String msg = in.readUTF();
+
+        SectorServer.doForNonNull(Guild.fromNameUnSafe(guildName), guild -> guild.sendToMembersOnlyThere(msg));
     }
-    static void updateInviteMapRemove2(DataInputStream in) throws IOException {
-        String playerName = in.readUTF();
+
+    static void guild_save(DataInputStream in) throws IOException {
+        String guildName = in.readUTF();
+        String data = in.readUTF();
+
+        SectorServer.doForNonNull(Guild.fromNameUnSafe(guildName), guild -> {
+            Guild newGuild;
+            try {
+                newGuild = GuildStatements.deserialize((JSONObject) new JSONParser().parse(data));
+                for (Field field : Guild.class.getDeclaredFields())
+                    if (!Modifier.isStatic(field.getModifiers()) && !Objects.equals(field.get(guild), field.get(newGuild))) {
+                        field.set(guild, field.get(newGuild));
+                        System.out.println(String.format("Ustawiono gildi %s wartość %s na %s", guild.name, field.getName(), field.get(guild)));//TODO: usunąć tego loga
+                    }
+            } catch (ParseException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    static void guild_delete(DataInputStream in) throws IOException {
         String guildName = in.readUTF();
 
-        SectorServer.doForNonNull(Guild.fromNameUnSafe(guildName), guild -> GuildCommand.inviteMap.remove(playerName, guild));
+        SectorServer.doForNonNull(Guild.fromNameUnSafe(guildName), Guild::deleteUnSafe);
     }
 }

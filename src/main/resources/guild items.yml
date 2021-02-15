@@ -1,14 +1,16 @@
 upgrades:
   - items:
-      STONE: 64
-      DIRT: 128
-      DIAMOND: 6
+      #STONE: 64
+      #DIRT: 128
+      DIAMOND: 1
     size: 50
   - items:
-      STONE: 250
+      DIAMOND: 2
+      #STONE: 250
     size: 75
   - items:
-      DIAMOND: 50
-      EMERALD: 25
+      DIAMOND: 3
+      #DIAMOND: 50
+      #EMERALD: 25
     size: 100
 

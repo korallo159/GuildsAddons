@@ -68,7 +68,8 @@ public class EntityDamageByEntityListener implements Listener {
         Guild g1 = Guild.fromPlayer(p1.getName());
         Guild g2 = Guild.fromPlayer(p2.getName());
 
-        if (Objects.equals(g1, g2) && !g1.pvp)
+
+        if (Objects.equals(g1, g2) && g1 != null && !g1.pvp)
             ev.setCancelled(true);
 
         return true;

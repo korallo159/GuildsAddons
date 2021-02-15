@@ -15,6 +15,8 @@ import java.util.function.Consumer;
 
 public class Boyki implements Listener {
     final int cooldown = 10;
+    public static final int maxHeight = 100;
+
     public static ItemStack itemAutoFosa;
     public static ItemStack itemBoyFarmer;
     public static ItemStack itemSandFarmer;
@@ -28,7 +30,13 @@ public class Boyki implements Listener {
         else if (ev.getItemInHand().isSimilar(itemSandFarmer))  consumer = loc -> setBlock(loc, Material.SAND);
         else return;
 
-        ev.setCancelled(true);
+
+        if (ev.getBlock().getLocation().getY() > maxHeight) {
+            ev.setCancelled(true);
+            ev.getPlayer().sendMessage("Jesteś za wysoko aby tego uzyć");
+            return;
+        }
+
         Bukkit.getScheduler().runTask(GuildsAddons.plugin, () -> {
             ev.getBlock().setType(Material.AIR, false);
             consumer.accept(ev.getBlock().getLocation().add(.5, .5, .5));

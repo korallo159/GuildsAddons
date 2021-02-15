@@ -1,5 +1,7 @@
 package koral.guildsaddons.database.statements;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -7,6 +9,7 @@ import java.sql.SQLException;
 import static koral.guildsaddons.database.DatabaseConnection.hikari;
 
 public class Table {
+
     public static void createTables() {
         try (Connection connection = hikari.getConnection()) {
             for (String create : new String[]{

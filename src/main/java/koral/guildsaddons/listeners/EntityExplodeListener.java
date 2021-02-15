@@ -31,18 +31,21 @@ public class EntityExplodeListener implements Listener {
         for (int x = -a; x <= a; x++)
             for (int z = -a; z <= a; z++)
                 for (int y = -a; y <= a; y++)
-                    if ((block = ev.getEntity().getLocation().clone().add(x, y, z).getBlock()).getType() == Material.OBSIDIAN && Math.random() <= .02)//TODO: wczytywać szanse na robicie obsydianu
+                    if ((block = ev.getEntity().getLocation().clone().add(x, y, z).getBlock()).getType() == Material.OBSIDIAN && Math.random() <= .08)//TODO: wczytywać szanse na robicie obsydianu
                         ev.blockList().add(block);
 
         // wybuchanie tnt na terenie gildi
-        if (ev.getEntity() instanceof TNTPrimed)
+        if (ev.getEntity() instanceof TNTPrimed) {
+            if (ev.getEntity().getLocation().getY() > Guild.tntHeight) {
+                ev.setCancelled(true);
+                return;
+            }
             SectorServer.doForNonNull(Guild.fromLocation(ev.getEntity().getLocation()), guild -> {
-                if (ev.getEntity().getLocation().getY() > Guild.tntHeight)
-                    ev.setCancelled(true);
-                else if (guild.protect >= System.currentTimeMillis()) {
+                if (guild.protect >= System.currentTimeMillis()) {
                     ev.setCancelled(true);
                     SectorServer.doForNonNull(((TNTPrimed) ev.getEntity()).getSource(), source -> source.sendMessage("Gildia " + guild.name + " jest jeszcze pod ochroną!"));
                 }
             });
+        }
     }
 }

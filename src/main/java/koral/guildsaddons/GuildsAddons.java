@@ -3,6 +3,7 @@ package koral.guildsaddons;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.flags.StateFlag;
+import koral.guildsaddons.guilds.Guild;
 import koral.guildsaddons.guilds.GuildCommand;
 import koral.guildsaddons.commands.Is;
 import koral.guildsaddons.commands.SetRtp;
@@ -22,9 +23,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.util.Map;
+import java.util.function.Consumer;
 
 
 public final class GuildsAddons extends JavaPlugin implements Listener {
@@ -48,20 +49,22 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         config = new ConfigManager("items.yml");
         reloadPlugin();
 
-        getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-        getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", new PluginChannelListener());
+        //getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+        //getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", new PluginChannelListener());
         getServer().getPluginManager().registerEvents(new PlayerInteract(), this);
         getServer().getPluginManager().registerEvents(new DeletenMending(), this);
         getServer().getPluginManager().registerEvents(new DropCollector(), this);
         getServer().getPluginManager().registerEvents(new Stoniarki(), this);
         getServer().getPluginManager().registerEvents(new Boyki(), this);
         getServer().getPluginManager().registerEvents(new Cobblex(), this);
+        getServer().getPluginManager().registerEvents(new PlayerQuit(), this);
         getServer().getPluginManager().registerEvents(new PlayerJoin(), this);
         getServer().getPluginManager().registerEvents(new ThrowingTnt(), this);
         getServer().getPluginManager().registerEvents(new EntityExplodeListener(), this);
         getServer().getPluginManager().registerEvents(new EntityDamageByEntityListener(), this);
         getServer().getPluginManager().registerEvents(new koral.guildsaddons.listeners.InventoryClickListener(), this);
         getServer().getPluginManager().registerEvents(new koral.guildsaddons.listeners.InventoryCloseListener(), this);
+        getServer().getPluginManager().registerEvents(new BlockBreakListener(), this);
 
         getServer().getPluginManager().registerEvents(new InventoryClickListener(), this);
         getServer().getPluginManager().registerEvents(new InventoryCloseListener(), this);
@@ -122,39 +125,6 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         Stoniarki.reload();
         Schowek.reload();
         GuildCommand.reloadGuildItems();
-    }
-
-
-    public interface DataOutputStreamConsumer {
-        void accept(DataOutputStream out) throws IOException;
-    }
-    public static void sendPluginMessage(DataOutputStreamConsumer outConsumer) {
-        ByteArrayOutputStream b = new ByteArrayOutputStream();
-        DataOutputStream out = new DataOutputStream(b);
-
-        try {
-            outConsumer.accept(out);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
-
-        Bukkit.getServer().sendPluginMessage(GuildsAddons.getPlugin(), "BungeeCord", b.toByteArray());
-    }
-    public static void sendPluginMessageForward(String server, String subchannel, DataOutputStreamConsumer outConsumer) {
-        sendPluginMessage(out -> {
-            out.writeUTF("Forward");
-            out.writeUTF(server);
-            out.writeUTF(subchannel);
-
-            ByteArrayOutputStream msg = new ByteArrayOutputStream();
-
-            outConsumer.accept(new DataOutputStream(msg));
-
-            byte[] msgBytes = msg.toByteArray();
-            out.writeShort(msgBytes.length);
-            out.write(msgBytes);
-        });
     }
 
 
