@@ -235,6 +235,7 @@ public class GuildCommand implements TabExecutor {
 
         region_max.setFlag(GuildsAddons.flagGuildCreate, StateFlag.State.DENY);
         region_max.setPriority(Guild.region_priority - 1);
+        region_max.setFlag(Flags.PASSTHROUGH, StateFlag.State.ALLOW);
 
         int start_dxz = Guild.upgradeCosts.get(0).t1;
         ProtectedCuboidRegion region = new ProtectedCuboidRegion(
@@ -249,7 +250,7 @@ public class GuildCommand implements TabExecutor {
         long now = System.currentTimeMillis();
         guild = new Guild(name, tag, p.getName(), null, new ArrayList<>(), new ArrayList<>(),
                 SerializableLocation.fromLocation(loc), region.getId(), loc.getWorld().getName(),
-                false, 3, 1, now + 24*60*60*1000 /* 24h ochrony startowej*/, now);
+                false, 3, 1, PlayersStatements.getPointsData(p.getName()), now + 24*60*60*1000 /* 24h ochrony startowej*/, now);
 
 
         region.setFlag(Flags.GREET_MESSAGE, Guild.greetPrefix + guild.name);
@@ -338,6 +339,8 @@ public class GuildCommand implements TabExecutor {
 
         setGuild(p.getName(), guild);
 
+        CustomTabList.updateGuildsRank();
+
         return guild.sendToMembers("Gildia utworzona na mocy %s", p.getDisplayName());
     }
     boolean usuń(Player p) {
@@ -377,7 +380,7 @@ public class GuildCommand implements TabExecutor {
             out.writeUTF(p.getName());
         });
 
-        guild.save();
+        guild.recalculatePoints();
         return true;
     }
     boolean wyrzuć(Player p, String[] args) {
@@ -414,7 +417,7 @@ public class GuildCommand implements TabExecutor {
                 if (!deleted)
                     return msg(p, "Niepoprawna nazwa gracza");
             }
-            guild.save();
+            guild.recalculatePoints();
         } else
             return msg(p, "Nie możesz tego zrobić");
         return true;
@@ -496,7 +499,7 @@ public class GuildCommand implements TabExecutor {
 
         guild.members.add(p.getName());
         setGuildOnEveryServers(p.getName(), guild);
-        guild.save();
+        guild.recalculatePoints();
 
         Guild fguild = guild;
         SectorServer.sendToServer("addMember", "ALL", out -> {

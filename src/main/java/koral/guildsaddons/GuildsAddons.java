@@ -3,6 +3,7 @@ package koral.guildsaddons;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.flags.StateFlag;
+import koral.guildsaddons.guilds.CustomTabList;
 import koral.guildsaddons.guilds.Guild;
 import koral.guildsaddons.guilds.GuildCommand;
 import koral.guildsaddons.commands.Is;
@@ -18,6 +19,7 @@ import koral.guildsaddons.schowek.InventoryCloseListener;
 import koral.guildsaddons.schowek.ItemPickUpListener;
 import koral.guildsaddons.schowek.Schowek;
 import koral.guildsaddons.simpleThings.*;
+import koral.guildsaddons.util.Pair;
 import koral.sectorserver.SectorServer;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
@@ -64,7 +66,8 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new EntityDamageByEntityListener(), this);
         getServer().getPluginManager().registerEvents(new koral.guildsaddons.listeners.InventoryClickListener(), this);
         getServer().getPluginManager().registerEvents(new koral.guildsaddons.listeners.InventoryCloseListener(), this);
-        getServer().getPluginManager().registerEvents(new BlockBreakListener(), this);
+        getServer().getPluginManager().registerEvents(new BlockPlaceListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerDeathListener(), this);
 
         getServer().getPluginManager().registerEvents(new InventoryClickListener(), this);
         getServer().getPluginManager().registerEvents(new InventoryCloseListener(), this);
@@ -93,6 +96,8 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         Table.createTables();
 
         SectorServer.registerForwardChannelListener(GuildSocketForwardChannelListener.class);
+
+        Bukkit.getScheduler().runTaskTimer(plugin, () -> Bukkit.getOnlinePlayers().forEach(CustomTabList::updateOnlineAll), 0, 20 * 30);
     }
 
     @Override
@@ -120,6 +125,16 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         ThrowingTnt.power_of_explosion = plugin.getConfig().getInt("ThrowingTnt.power_of_explosion");
         ThrowingTnt.power_of_throwing = plugin.getConfig().getInt("ThrowingTnt.power_of_throwing");
         ThrowingTnt.ticks_to_explosion = plugin.getConfig().getInt("ThrowingTnt.ticks_to_explosion");
+
+        PlayerDeathListener.elo_divider = plugin.getConfig().getDouble("elo.divider", 400);
+        PlayerDeathListener.elo_exponent = plugin.getConfig().getDouble("elo.exponent", 10);
+        PlayerDeathListener.elo_constants.clear();
+        plugin.getConfig().getStringList("elo.constants").forEach(str -> {
+            String min = str.substring(0, str.indexOf('-'));
+            String max = str.substring(str.indexOf('-') + 1, str.indexOf(' '));
+            String s = str.substring(str.indexOf(' ') + 1);
+            PlayerDeathListener.elo_constants.put(new Pair<>(Integer.parseInt(min), Integer.parseInt(max)), Integer.parseInt(s));
+        });
 
         StoneDrop.reload();
         Stoniarki.reload();

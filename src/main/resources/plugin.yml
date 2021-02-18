@@ -21,9 +21,11 @@ commands:
     permission: guildsaddons.delhome
     usage: /sethome <nazwa>
   sethome:
+    aliases: [ustawdom, ustawhome]
     permission: guildsaddons.sethome
     usage: /sethome <nazwa>
   home:
+    aliases: [dom]
     permission: guildsaddons.home
     usage: /home (nazwa)
   itemshop:

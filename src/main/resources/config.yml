@@ -5,6 +5,14 @@ jdbcurl:
 username:
 password:
 
+elo:
+  exponent: 10.0
+  divider: 400.0
+  constants:
+  - '0-1999 32'
+  - '2000-2400 24'
+  - '2401-1000000 16'
+
 ThrowingTnt:
   power_of_explosion: 2.0
   power_of_throwing: 2.5

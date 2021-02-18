@@ -64,22 +64,20 @@ public class StoneDrop implements Listener, TabExecutor {
 
             boolean on = !p.getScoreboardTags().contains(unwantedTag(item));
 
-            if (!meta.hasLore()) {
-                List<String> lore = Lists.newArrayList(
-                        ChatColor.GREEN + "Szansa: " + ChatColor.YELLOW + String.format("%.2f", drop.defaultChange * 100) + "%",
-                                "",
-                                ChatColor.BLUE + "Włączony: " + (on ? yes : no),
-                                ChatColor.BLUE + "Fortuna: "  + (drop.fortune_bonus != 0 ? yes : no)
-                        );
-                if (drop.permsMap != null) {
-                    lore.add("");
-                    drop.permsMap.forEach((perm, change) -> lore.add(
-                            ChatColor.GOLD + GuildsAddons.plugin.getConfig().getString("Permnames." + perm, perm) +
-                                    "§8: §a+§e" + String.format("%.2f", change * 100)
-                    ));
-                }
-                meta.setLore(lore);
+            List<String> lore = Lists.newArrayList(
+                    ChatColor.GREEN + "Szansa: " + ChatColor.YELLOW + String.format("%.2f", drop.defaultChange * 100) + "%",
+                            "",
+                            ChatColor.BLUE + "Włączony: " + (on ? yes : no),
+                            ChatColor.BLUE + "Fortuna: "  + (drop.fortune_bonus != 0 ? yes : no)
+                    );
+            if (drop.permsMap != null) {
+                lore.add("");
+                drop.permsMap.forEach((perm, change) -> lore.add(
+                        ChatColor.GOLD + GuildsAddons.plugin.getConfig().getString("Permnames." + perm, perm) +
+                                "§8: §a+§e" + String.format("%.2f", change * 100)
+                ));
             }
+            meta.setLore(lore);
 
             if (on) {
                 meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);

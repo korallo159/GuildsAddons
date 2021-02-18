@@ -66,11 +66,13 @@ public class Guild  {
 
     public int level;
 
+    public double points;
+
     public long protect; // milisekundy końca ochrony
     public long creation_date;
 
     public Guild(String name, String tag, String leader, String subLeader, List<String> members, List<String> alliances, SerializableLocation home,
-                 String region, String region_world, boolean pvp, int hearts, int level, long protect, long creation_date) {
+                 String region, String region_world, boolean pvp, int hearts, int level, double points, long protect, long creation_date) {
         this.name = name;
         this.tag = tag;
         this.leader = leader;
@@ -83,16 +85,27 @@ public class Guild  {
         this.pvp = pvp;
         this.hearts = hearts;
         this.level = level;
+        this.points = points;
         this.protect = protect;
         this.creation_date = creation_date;
     }
 
     public void save() {
-        GuildStatements.updatadeData(this);
+        GuildStatements.updateData(this);
         SectorServer.sendToServer("guild_save", "ALL", out -> {
             out.writeUTF(name);
             out.writeUTF(GuildStatements.serialize(this));
         });
+    }
+    public void addPoints(double points) {
+        this.points += points / (members.size() + (subLeader == null ? 0 : 1) + 1);
+        save();
+        CustomTabList.updateGuildsRank();
+    }
+    public void recalculatePoints() {
+        this.points = PlayersStatements.getGuildPoints(this);
+        save();
+        CustomTabList.updateGuildsRank();
     }
 
 

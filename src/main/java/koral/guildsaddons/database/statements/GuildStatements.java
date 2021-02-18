@@ -3,7 +3,9 @@ package koral.guildsaddons.database.statements;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import koral.guildsaddons.guilds.CustomTabList;
 import koral.guildsaddons.guilds.Guild;
+import koral.guildsaddons.util.Pair;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -12,6 +14,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static koral.guildsaddons.database.DatabaseConnection.hikari;
 
@@ -22,8 +26,12 @@ public class GuildStatements extends Statements {
                 guild.name, guild.tag, GuildStatements.serialize(guild), guild.name);
     }
 
-    public static void updatadeData(Guild guild) {
-        stringSetter("UPDATE Guilds SET data=? WHERE NAME=?", serialize(guild), guild.name);
+    public static void updateData(Guild guild) {
+        setter("UPDATE Guilds SET data=?, points=? WHERE NAME=?", statement -> {
+            statement.setString(1, serialize(guild));
+            statement.setDouble(2, guild.points);
+            statement.setString(3, guild.name);
+        });
     }
 
     public static void delete(Guild guild) {
@@ -79,4 +87,23 @@ public class GuildStatements extends Statements {
     public static Guild deserialize(JsonElement json) {
         return new Gson().fromJson(json.getAsString(), Guild.class);
     }
+
+    public static List<Pair<String, Integer>> getTopGuilds() {
+        return getter("SELECT * FROM Guilds ORDER BY points DESC LIMIT " + CustomTabList.rankSlots, statement -> {}, resultSet -> {
+            List<Pair<String, Integer>> result = new ArrayList<>();
+
+            while (resultSet.next()) {
+                try {
+                    result.add(new Pair<>(
+                            GuildStatements.deserialize((JSONObject) new JSONParser().parse(resultSet.getString("data"))).name,
+                            (int) resultSet.getDouble("points"))
+                    );
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+            return result;
+        });
+    }
+
 }

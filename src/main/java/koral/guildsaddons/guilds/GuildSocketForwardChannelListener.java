@@ -22,15 +22,6 @@ import java.util.function.BiConsumer;
 
 @SuppressWarnings("unused")
 public class GuildSocketForwardChannelListener implements ForwardChannelListener {
-    // ogólne
-    static void msg(DataInputStream in) throws IOException {
-        String playerName = in.readUTF();
-        String msg = in.readUTF();
-
-        SectorServer.doForNonNull(Bukkit.getPlayer(playerName), p -> p.sendMessage(msg));
-    }
-
-
     // regiony
     static RegionManager getRegions(String worldName) {
         return WorldGuard.getInstance().getPlatform().getRegionContainer().get(BukkitAdapter.adapt(Bukkit.getWorld(worldName)));
@@ -142,4 +133,13 @@ public class GuildSocketForwardChannelListener implements ForwardChannelListener
 
         SectorServer.doForNonNull(Guild.fromNameUnSafe(guildName), Guild::deleteUnSafe);
     }
+
+
+    static void updateTabPlayersRank(DataInputStream in) {
+        CustomTabList._updatePlayersRank();
+    }
+    static void updateTabGuildsRank(DataInputStream in) {
+        CustomTabList._updateGuildsRank();
+    }
+
 }
