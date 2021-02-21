@@ -38,6 +38,11 @@ public class Boyki implements Listener {
             ev.getPlayer().sendMessage("Jesteś za wysoko aby tego uzyć");
             return;
         }
+        if (ev.getBlock().getLocation().getY() < 5) {
+            ev.setCancelled(true);
+            ev.getPlayer().sendMessage("Jesteś za nisko aby tego użyć");
+            return;
+        }
 
         Bukkit.getScheduler().runTask(GuildsAddons.plugin, () -> {
             ev.getBlock().setType(Material.AIR, false);

@@ -16,6 +16,7 @@ import koral.guildsaddons.listeners.InventoryClickListener;
 import koral.guildsaddons.managers.ConfigManager;
 import koral.guildsaddons.simpleThings.StoneDrop;
 import koral.guildsaddons.util.Pair;
+import koral.guildsaddons.util.PanelYesNo;
 import koral.guildsaddons.util.SerializableLocation;
 import koral.sectorserver.PluginChannelListener;
 import koral.sectorserver.SectorServer;
@@ -356,11 +357,15 @@ public class GuildCommand implements TabExecutor {
         if (guild == null)                     return msg(p, "Nie posiadasz gildii");
         if (!p.getName().equals(guild.leader)) return msg(p, "Musisz być liderem gildi aby to zrobić");
 
-        guild.sendToMembers("%s usunął gildię", p.getDisplayName());
+        Bukkit.getScheduler().runTask(GuildsAddons.getPlugin(), () -> {
+            PanelYesNo.create(p, "&4&lCzy napewno chcesz usunąć gildie&9&l?", "§aOczywiście że chcę", "§cnie tym razem", () -> {
+                guild.sendToMembers("%s usunął gildię", p.getDisplayName());
 
-        p.sendMessage("Usunołeś gildię " + guild.name);
+                p.sendMessage("Usunołeś gildię " + guild.name);
 
-        guild.delete();
+                guild.delete();
+            }, null);
+        });
 
         return true;
     }

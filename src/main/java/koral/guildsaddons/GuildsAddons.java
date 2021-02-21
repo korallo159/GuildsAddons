@@ -18,6 +18,7 @@ import koral.guildsaddons.managers.ConfigManager;
 import koral.guildsaddons.schowek.*;
 import koral.guildsaddons.simpleThings.*;
 import koral.guildsaddons.util.Pair;
+import koral.guildsaddons.util.PanelYesNo;
 import koral.sectorserver.SectorServer;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
@@ -76,6 +77,7 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new PlayerCommandPreprocessListener(), this);
         getServer().getPluginManager().registerEvents(new InventoryCloseListener(), this);
         getServer().getPluginManager().registerEvents(new ItemPickUpListener(), this);
+        getServer().getPluginManager().registerEvents(new PanelYesNo(), this);
         getServer().getPluginManager().registerEvents(new Is(), this);
         getCommand("schowek").setExecutor(new Schowek());
 
