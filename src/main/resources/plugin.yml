@@ -42,6 +42,8 @@ commands:
   gildia:
     aliases: [guild, g]
     permission: guildsaddons.gildia
+  gadmin:
+    permission: guildsaddons.gadmin
 
 
 permissions:

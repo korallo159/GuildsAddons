@@ -31,7 +31,6 @@ public class Is implements TabExecutor, Listener {
     static Cooldowns cooldowns = new Cooldowns(new HashMap<>());
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-
         if (command.getName().equalsIgnoreCase("isadmin")) {
             for (String s : config.getConfig().getKeys(false))
                 if (s.equals(args[1])) {
@@ -39,8 +38,6 @@ public class Is implements TabExecutor, Listener {
                     sender.sendMessage("Pomyslnie dodano przedmiot do itemshopu gracza");
                 }
         }
-
-
         if(sender instanceof Player) {
             Player player = (Player) sender;
             if(command.getName().equalsIgnoreCase("isedit")){

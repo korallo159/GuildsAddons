@@ -37,6 +37,7 @@ public class GuildSocketForwardChannelListener implements ForwardChannelListener
             regions.removeRegion(region);
             regions.removeRegion(region + "_max");
         } catch (Throwable e) {
+
         }
     }
     static void removeMember(DataInputStream in) throws IOException {

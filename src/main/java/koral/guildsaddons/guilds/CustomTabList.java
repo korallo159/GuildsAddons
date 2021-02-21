@@ -85,7 +85,8 @@ public class CustomTabList {
         CustomTabList.Slots.onlineThere.update(p, "§aonline sektora: §e" + Bukkit.getOnlinePlayers().size());
     }
     public static void updateOnlineAll(Player p) {
-        CustomTabList.Slots.onlineAll.update(p, "§aonline global: §e" + PluginChannelListener.playerCompleterList.size());
+        if(PluginChannelListener.playerCompleterList.size() != 0)
+        CustomTabList.Slots.onlineAll.update(p, "§aonline global: §e" +  PluginChannelListener.playerCompleterList.size());
     }
 
     public static void updatePlayersRank() {

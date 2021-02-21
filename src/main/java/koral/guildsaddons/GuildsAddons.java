@@ -3,12 +3,10 @@ package koral.guildsaddons;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.flags.StateFlag;
-import koral.guildsaddons.commands.rtp;
+import koral.guildsaddons.commands.*;
 import koral.guildsaddons.guilds.CustomTabList;
+import koral.guildsaddons.guilds.GuildAdminCommand;
 import koral.guildsaddons.guilds.GuildCommand;
-import koral.guildsaddons.commands.Is;
-import koral.guildsaddons.commands.SetRtp;
-import koral.guildsaddons.commands.Sethome;
 import koral.guildsaddons.database.DatabaseConnection;
 import koral.guildsaddons.database.statements.Table;
 import koral.guildsaddons.guilds.GuildSocketForwardChannelListener;
@@ -95,8 +93,8 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getCommand("itemshop").setExecutor(is);
         getCommand("isadmin").setExecutor(is);
         getCommand("isedit").setExecutor(is);
-
         getCommand("gildia").setExecutor(new GuildCommand());
+        getCommand("gadmin").setExecutor(new GuildAdminCommand());
         getCommand("rtp").setExecutor(new rtp());
 
         DatabaseConnection.configureDbConnection();
