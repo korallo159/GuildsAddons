@@ -1,8 +1,10 @@
 package koral.guildsaddons.database.statements;
 
+import koral.guildsaddons.GuildsAddons;
 import koral.guildsaddons.guilds.CustomTabList;
 import koral.guildsaddons.guilds.Guild;
 import koral.guildsaddons.util.Pair;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -137,6 +139,8 @@ public class PlayersStatements extends Statements {
 
     public static void setGuild(String playerName, Guild guild) {
         stringSetter("UPDATE Players SET guild=? WHERE NICK=?", guild == null ? null : guild.name, playerName);
+        if (GuildsAddons.chat != null)
+            GuildsAddons.chat.setPlayerSuffix((World) null, playerName, guild == null ? "" : (" §2[§a" + guild.tag + "§2]"));
     }
     public static String getGuildName(String playerName) {
         return standardGetter("guild", playerName);

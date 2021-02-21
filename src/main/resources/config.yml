@@ -21,3 +21,10 @@ ThrowingTnt:
 Permnames:
   drop.vip: §eVIP
   drop.svip: §bSVIP
+
+blockedCmdOnOtherGuild:
+  - '/tpaccept'
+  - '/tpa'
+  - '/ustawhome'
+  - '/sethome'
+  - '/ustawdom'

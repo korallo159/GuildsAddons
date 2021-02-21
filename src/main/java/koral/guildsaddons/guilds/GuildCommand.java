@@ -8,6 +8,7 @@ import com.sk89q.worldguard.protection.flags.Flags;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import koral.guildsaddons.GuildsAddons;
 import koral.guildsaddons.database.statements.GuildStatements;
 import koral.guildsaddons.database.statements.PlayersStatements;
@@ -18,6 +19,7 @@ import koral.guildsaddons.util.Pair;
 import koral.guildsaddons.util.SerializableLocation;
 import koral.sectorserver.PluginChannelListener;
 import koral.sectorserver.SectorServer;
+import koral.sectorserver.commands.Tpa;
 import koral.sectorserver.util.Teleport;
 import org.bukkit.*;
 import org.bukkit.command.Command;
@@ -29,6 +31,8 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -99,7 +103,7 @@ public class GuildCommand implements TabExecutor {
     }
 
     public static boolean msg(CommandSender sender, String msg) {
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', msg));
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6" + msg));
         return true;
     }
 
@@ -174,7 +178,7 @@ public class GuildCommand implements TabExecutor {
         PlayersStatements.setGuild(playerName, guild);
         SectorServer.sendToServer("guild_set", "ALL", out -> {
             out.writeUTF(playerName);
-            out.writeUTF(guild == null ? null : guild.name);
+            out.writeUTF(guild == null ? "" : guild.name);
         });
     }
     public static boolean setGuild(String playerName, Guild guild) {
@@ -192,6 +196,9 @@ public class GuildCommand implements TabExecutor {
             setGuild(playerName, Guild.fromName(guild));
     }
 
+    public static BlockVector3 locToVec(Location loc) {
+        return BlockVector3.at(loc.getX(), loc.getY(), loc.getZ());
+    }
     static BlockVector3 getMinRegionPoint(Location loc, int dxz) {
         return BlockVector3.at((int) (loc.getBlockX() - dxz / 2d), 0,   (int) (loc.getBlockZ() - dxz / 2d));
     }
@@ -365,8 +372,10 @@ public class GuildCommand implements TabExecutor {
         if (!guild.members.remove(p.getName()))
             if (p.getName().equals(guild.subLeader))
                 guild.subLeader = null;
-            else
+            else if (p.getName().equals(guild.leader))
                 return msg(p, "Nie możesz opuścić własnej gildi");
+            else
+                return msg(p, "Nastąpiły komplikacje z opuszczaniem gildi, skontaktuj sie z administratorem");
 
         guild.sendToMembers("%s opuścił gildię", p.getDisplayName());
 
@@ -537,12 +546,18 @@ public class GuildCommand implements TabExecutor {
         if (guild == null) return msg(p, "Nie posiadasz gildii");
 
         if (p.getName().equals(guild.leader) || p.getName().equals(guild.subLeader)) {
-            guild.home = SerializableLocation.fromLocation(p.getLocation()); // TODO: sprawdzać czy stoi na terenie gildi
-            guild.save();
+            RegionManager regions = WorldGuard.getInstance().getPlatform().getRegionContainer().get(BukkitAdapter.adapt(p.getWorld()));
+            for (ProtectedRegion region : regions.getApplicableRegions(locToVec(p.getLocation())).getRegions()) {
+                if (region.getId().equals(guild.region)) {
+                    guild.home = SerializableLocation.fromLocation(p.getLocation());
+                    guild.save();
+                    return guild.sendToMembers("%s wyznaczył nowy home gildi", p.getDisplayName());
+                }
+            }
         } else
             return msg(p, "Nie możesz tego zrobić");
 
-        return guild.sendToMembers("%s wyznaczył nowy home gildi", p.getDisplayName());
+        return msg(p, "Nie możesz ustawić home poza terenem gildi");
     }
     boolean dom(Player p) {
         Guild guild = Guild.fromPlayer(p.getName());
@@ -550,8 +565,11 @@ public class GuildCommand implements TabExecutor {
         if (guild == null)      return msg(p, "Nie posiadasz gildi");
         if (guild.home == null) return msg(p, "Twoja gildia nie ma domu");
 
-        final Guild fGuild = guild;
-        Bukkit.getScheduler().runTask(GuildsAddons.getPlugin(), () -> Teleport.teleport(p, fGuild.home.toLocation()));
+        Bukkit.getScheduler().runTask(GuildsAddons.getPlugin(), () -> {
+            p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 11*20, 0, false, false, false));
+            p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 11*20, 2, false, false, false));
+            domTp(guild.home.toLocation(), p, p.getLocation(), 10);
+        });
         return true;
     }
     boolean pvp(Player p) {
@@ -739,29 +757,24 @@ public class GuildCommand implements TabExecutor {
         return true;
     }
     boolean info(CommandSender sender, String[] args) {
-        if (args.length < 2)
-            return msg(sender, "/g info [nazwa | tag | nick]");
-
-        Guild guild = Guild.fromName(args[1]);
-        if (guild == null) guild = Guild.fromTag(args[1]);
-        if (guild == null) guild = Guild.fromPlayer(args[1]);
-        if (guild == null) return msg(sender, "Niepoprawna nazwa/tag gildi");
+        Guild guild = args.length >= 2 ? Guild.fromString(args[1]) : Guild.fromPlayer(sender.getName());
+        if (guild == null) return msg(sender, "/g info [nazwa | tag | nick]");
 
         sender.sendMessage(" ");
         sender.sendMessage(" ");
-        sender.sendMessage("Gildia " + guild.name);
-        sender.sendMessage("tag: " + guild.tag);
+        sender.sendMessage("§cGildia§8: §4" + guild.name);
+        sender.sendMessage("§2tag§8: §a" + guild.tag);
         sender.sendMessage(" ");
-        sender.sendMessage("lider: " + guild.leader);
+        sender.sendMessage("§6lider§8: §e" + guild.leader);
         if (guild.subLeader != null)
-            sender.sendMessage("zastępca: " + guild.subLeader);
+            sender.sendMessage("§6zastępca§8: §e" + guild.subLeader);
         if (!guild.members.isEmpty())
-            sender.sendMessage("członkowie: " + guild.members);
+            sender.sendMessage("§6członkowie§8: §e" + guild.members);
         sender.sendMessage(" ");
-        sender.sendMessage("życia: " + guild.hearts);
-        sender.sendMessage("level: " + guild.level);
-        sender.sendMessage("ochrona do: " + new SimpleDateFormat("MMM dd,yyyy HH:mm").format(new Date(guild.protect)));
-        sender.sendMessage("data stworzenia: " + new SimpleDateFormat("MMM dd,yyyy HH:mm").format(new Date(guild.creation_date)));
+        sender.sendMessage("§6życia§8: §4" + guild.hearts);
+        sender.sendMessage("§6level§8: §a" + guild.level);
+        sender.sendMessage("§6ochrona do§8: §9" + new SimpleDateFormat("dd:MM:yyyy HH:mm").format(new Date(guild.protect)));
+        sender.sendMessage("§6data stworzenia§8: §6" + new SimpleDateFormat("dd:MM:yyyy HH:mm").format(new Date(guild.creation_date)));
         sender.sendMessage(" ");
 
         return true;
@@ -769,33 +782,48 @@ public class GuildCommand implements TabExecutor {
 
     boolean pomoc(CommandSender sender) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage("Tej komendy może użyć tylko gracz");
+            sender.sendMessage("§6Tej komendy może użyć tylko gracz");
             return true;
         }
 
         Guild guild = Guild.fromPlayer(sender.getName());
 
         if (guild != null) {
-            sender.sendMessage("/g opuść - opuszcza gildię");
+            sender.sendMessage("§6/g opuść §a- §9opuszcza gildię");
             if (guild.home != null)
-                sender.sendMessage("/g dom - teleportuje na dom gildi");
+                sender.sendMessage("§6/g dom §a- §9teleportuje na dom gildi");
             boolean leader = sender.getName().equals(guild.leader);
             if (leader || sender.getName().equals(guild.subLeader)) {
-                sender.sendMessage("/g pvp - włącza/wyłącza pvp między członkami gildi");
-                sender.sendMessage("/g zaproś <nick> - zaprasza gracza do gildi");
-                sender.sendMessage("/g wyrzuć <nick> - wyrzuca gracza z gildi");
-                sender.sendMessage("/g powiększ - powiększa teren gildi");
-                sender.sendMessage("/g ustawhome - ustawia dom gildi");
+                sender.sendMessage("§6/g pvp §a- §9włącza/wyłącza pvp między członkami gildi");
+                sender.sendMessage("§6/g zaproś <nick> §a- §9zaprasza gracza do gildi");
+                sender.sendMessage("§6/g wyrzuć <nick> §a- §9wyrzuca gracza z gildi");
+                sender.sendMessage("§6/g powiększ §a- §9powiększa teren gildi");
+                sender.sendMessage("§6/g ustawhome §a- §9ustawia dom gildi");
                 if (leader) {
-                    sender.sendMessage("/g usuń - usuwa gildię");
-                    sender.sendMessage("/g zastępca <nick> - wyznacza zastępce lidera");
+                    sender.sendMessage("§6/g usuń §a- §9usuwa gildię");
+                    sender.sendMessage("§6/g zastępca <nick> §a- §9wyznacza zastępce lidera");
                 }
             }
         } else {
-            sender.sendMessage("/g załóż <nazwa> <tag> - zakłada gildię");
-            sender.sendMessage("/g itemy - wykaz potrzbnych itemów do założenia gildi");
-            sender.sendMessage("/g dołącz - dołącza do gildi z zaproszenia");
+            sender.sendMessage("§6/g załóż <nazwa> <tag> §a- §9zakłada gildię");
+            sender.sendMessage("§6/g itemy §a- §9wykaz potrzbnych itemów do założenia gildi");
+            sender.sendMessage("§6/g dołącz §a- §9dołącza do gildi z zaproszenia");
         }
         return true;
+    }
+
+
+    public static void domTp(Location where, Player target, Location lastLocation, int secondsLeft) {
+        if (target.getLocation().distance(lastLocation) > 1) {
+            target.sendMessage("§cPoruszyłeś się! Teleportacja anulowana.");
+            target.removePotionEffect(PotionEffectType.CONFUSION);
+            target.removePotionEffect(PotionEffectType.BLINDNESS);
+        } else if (secondsLeft <= 0) {
+            Teleport.teleport(target, where);
+            SectorServer.msg(target, "§aPrzeteleportowano");
+        } else {
+            target.sendTitle("§5§lTeleportacja", "§9Nie ruszaj się, za §a " + secondsLeft + "s §9 zostaniesz przeteleportowany", 0, 22, 5);
+            Bukkit.getScheduler().runTaskLater(SectorServer.plugin, () -> domTp(where, target, lastLocation,secondsLeft - 1), 20);
+        }
     }
 }

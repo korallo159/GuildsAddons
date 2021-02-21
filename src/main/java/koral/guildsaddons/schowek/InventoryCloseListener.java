@@ -9,6 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.json.simple.JSONObject;
@@ -24,7 +25,15 @@ public class InventoryCloseListener implements Listener {
             ev.getInventory().forEach(item -> {
                 if (!Schowek.Holder.emptySlot.isSimilar(item)) {
                     String key = item.getType().toString();
-                    json.put(key, (int) (long) json.getOrDefault(key, 0l) + item.getAmount());
+                    Object numObj = json.getOrDefault(key, 0l);
+                    int num;
+                    if (numObj instanceof Long)
+                        num = (int) (long) numObj;
+                    else if (numObj instanceof Integer)
+                        num = (int) numObj;
+                    else
+                        num = Integer.parseInt(numObj.toString());
+                    json.put(key, num + item.getAmount());
                 }
             });
 
@@ -40,11 +49,14 @@ public class InventoryCloseListener implements Listener {
         checkEq(ev, false);
     }
 
-    private void checkEq(InventoryCloseEvent ev, boolean force) {
-        if (!force && ev.getInventory().getHolder() != null && ev.getInventory().getHolder() instanceof  Schowek.Holder)
+    static void checkEq(InventoryCloseEvent ev, boolean force) {
+        checkEq((Player) ev.getPlayer(), ev, force);
+    }
+    static void checkEq(Player p, InventoryEvent ev, boolean force) {
+        if (!force && ev.getInventory().getHolder() != null && ev.getInventory().getHolder() instanceof Schowek.Holder)
             return;
         Map<Material, Integer> amounts = new HashMap<>();
-        PlayerInventory inv = ev.getPlayer().getInventory();
+        PlayerInventory inv = p.getInventory();
         Map<String, Integer> toSend = new HashMap<>();
         for (int i=0; i < inv.getSize(); i++) {
             ItemStack item = inv.getItem(i);
@@ -73,7 +85,7 @@ public class InventoryCloseListener implements Listener {
         }
         if (!toSend.isEmpty())
             Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.plugin, () ->
-                    PlayersStatements.updatePlayerData((Player) ev.getPlayer(), toSend));
+                    PlayersStatements.updatePlayerData(p, toSend));
 
     }
 }

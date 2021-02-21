@@ -23,6 +23,8 @@ public class Boyki implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onBlockPlace(BlockPlaceEvent ev) {
+        if (ev.isCancelled()) return;
+
         Consumer<Location> consumer;
 
         if      (ev.getItemInHand().isSimilar(itemAutoFosa))    consumer = this::removeBlock;

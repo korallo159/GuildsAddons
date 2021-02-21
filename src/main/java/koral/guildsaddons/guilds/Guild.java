@@ -182,15 +182,14 @@ public class Guild  {
         });
 
 
-        Consumer<String> forget = playerName -> PlayersStatements.setGuild(playerName, null);
+        Consumer<String> forget = playerName -> GuildCommand.setGuildOnEveryServers(playerName, null);
 
         forget.accept(leader);
         if (subLeader != null) forget.accept(subLeader);
         members.forEach(forget::accept);
 
 
-        final String finalGuildName = name;
-        SectorServer.sendToServer("guild_delete", "ALL", out -> out.writeUTF(finalGuildName));
+        SectorServer.sendToServer("guild_delete", "ALL", out -> out.writeUTF(name));
 
         GuildStatements.delete(this);
 

@@ -1,6 +1,7 @@
 package koral.guildsaddons.guilds;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
 import io.netty.channel.unix.Socket;
 import koral.guildsaddons.GuildsAddons;
 import koral.guildsaddons.database.statements.GuildStatements;
@@ -11,10 +12,13 @@ import koral.sectorserver.SectorServer;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.craftbukkit.v1_16_R3.CraftOfflinePlayer;
 import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -66,22 +70,22 @@ public class CustomTabList {
 
 
     public static void updateKills(Player p, int kills) {
-        CustomTabList.Slots.kills.update(p, "&aZabójstwa: &e" + kills);
+        CustomTabList.Slots.kills.update(p, "§aZabójstwa: §e" + kills);
     }
     public static void updateDeaths(Player p, int deaths) {
-        CustomTabList.Slots.deaths.update(p, "&aŚmierci: &e" + deaths);
+        CustomTabList.Slots.deaths.update(p, "§aŚmierci: §e" + deaths);
     }
     public static void updatePoints(Player p, double points) {
-        CustomTabList.Slots.rank.update(p, "&aPunkty: &e" + (int) points);
+        CustomTabList.Slots.rank.update(p, "§aPunkty: §e" + (int) points);
     }
     public static void updateNick(Player p) {
-        CustomTabList.Slots.nick.update(p, "&aNick: &7" + p.getDisplayName());
+        CustomTabList.Slots.nick.update(p, "§aNick: §7" + p.getDisplayName());
     }
     public static void updateOnlineThere(Player p) {
-        CustomTabList.Slots.onlineThere.update(p, "&aonline tutaj: &e" + Bukkit.getOnlinePlayers().size());
+        CustomTabList.Slots.onlineThere.update(p, "§aonline sektora: §e" + Bukkit.getOnlinePlayers().size());
     }
     public static void updateOnlineAll(Player p) {
-        CustomTabList.Slots.onlineAll.update(p, "&aonline wszystkie: &e" + PluginChannelListener.playerCompleterList.size());
+        CustomTabList.Slots.onlineAll.update(p, "§aonline global: §e" + PluginChannelListener.playerCompleterList.size());
     }
 
     public static void updatePlayersRank() {
@@ -137,7 +141,7 @@ public class CustomTabList {
         Consumer<String> pole = msg -> inTab[num[0]] = create(server, worldServer, msg, num[0]++);
 
         pole.accept("");
-        pole.accept("Informacje o Tobie ");
+        pole.accept("§2§lInformacje o Tobie ");
         pole.accept(" ");
         pole.accept("~ nick");
         pole.accept("Ranking");
@@ -158,7 +162,7 @@ public class CustomTabList {
         pole.accept(" ");
 
         pole.accept(" ");
-        pole.accept("Top rankingu");
+        pole.accept("§6§lTop rankingu");
         pole.accept(" ");
 
         pole.accept("#1");
@@ -180,7 +184,7 @@ public class CustomTabList {
         pole.accept(" ");
 
         pole.accept(" ");
-        pole.accept("Top gildie");
+        pole.accept("§4§lTop gildie");
         pole.accept(" ");
         pole.accept("#1");
         pole.accept("#2");
@@ -201,14 +205,14 @@ public class CustomTabList {
         pole.accept(" ");
 
         pole.accept(" ");
-        pole.accept("komendy");
+        pole.accept("§9§lkomendy");
         pole.accept(" ");
-        pole.accept("/itemshop");
-        pole.accept("/schowek");
-        pole.accept("/g");
-        pole.accept("/spawn");
-        pole.accept("/tpa");
-        pole.accept("/ustawdom");
+        pole.accept("§9/itemshop");
+        pole.accept("§9/schowek");
+        pole.accept("§9/g");
+        pole.accept("§9/spawn");
+        pole.accept("§9/tpa");
+        pole.accept("§9/ustawdom");
         pole.accept(" ");
         pole.accept(" ");
         pole.accept(" ");
@@ -228,7 +232,7 @@ public class CustomTabList {
     }
 
     public static void apply(Player p) {
-        p.setPlayerListHeader(ChatColor.GOLD + "" + ChatColor.BOLD + "\nJBWM\n\n");
+        p.setPlayerListHeader(ChatColor.GOLD + "" + ChatColor.BOLD + "\nJBWM\n\n§6sektor§8: §a" + SectorServer.serverName);
         p.setPlayerListFooter(ChatColor.translateAlternateColorCodes('&',
                 "&9✪ &c&lsklep&8: &f&lsklep.jbwm.pl &9✪ &c&ldc&8: &f&ldiscord.jbwm.pl &9✪ &c&lfb&8: &f&lfb.com/jbwmpl &9✪"));
 
@@ -248,22 +252,12 @@ public class CustomTabList {
     private static EntityPlayer create(MinecraftServer server, WorldServer worldServer, String name, int num) {
         PlayerInteractManager playerinteractmanager = new PlayerInteractManager(worldServer);
         GameProfile profile = new GameProfile(UUID.randomUUID(), "!" + (num < 10 ? "0" : "") + num);
-        //profile.getProperties().put("textures", new Property("textures", texture, signature));
+        profile.getProperties().put("textures", new Property("textures",
+                "ewogICJ0aW1lc3RhbXAiIDogMTYxMzczNTk2NDgxMSwKICAicHJvZmlsZUlkIiA6ICI3MjM3MWFkZjJlOGQ0YzkyYTczNGE5M2M4Mjc5ZGViOSIsCiAgInByb2ZpbGVOYW1lIiA6ICJTdG9uZSIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS85NmRhNzM1Yzg4ZTA4YjgwYmRmODE0MGIwYWRkOGQxODY5MGI4NWI0ZjkwMjViYjg4MWQ3YTE5MTM0MGYzYjMxIgogICAgfQogIH0KfQ==",
+                "mSgiOk3sj2eX3KNQydJebpx6sjn7X9XdXDSZqSA+Tbs66gt5sQnXrE4E2dNr5ddSP1B1ldosNVEUc1nzlWalqyzD+lekDHNo3YuNSFtoAFIVyKfNqfwiAlyFFYvaPFSwA/v/pyjoCaKYt/oh8pLDcuNDVRxft3uTFG9RspzaOm7w40znFWOLKesSK2l5q+ijfH1hwFoBGloxHR5U/mC8tzox1gSlHNCZJfRMiOEPQ5ZnlHCCQDwLoRTpblFFRv8+iesLCqelxPPDodMhalIqmVfHPqys+KzYrSAYiuTCmL6TMo5Mzf/sgDZZupCHGpgwA6juJOXqIPUDL9fqY5a8xnSnGJB4bqG+93Fd/oOgO9zJYsWbOX07aiumzezkyl9EOoDKHw5O6Y4lPJiKzyEXB7E1Ig9l5PW8Rc6fxu9Qltqia3EJcx/ApZb3mG3WOsq6aBs1SSs3lCij/bUDUplKxDePGHppAj5+i3ogq9PWgYhco1QAY2XYAwEGEjAcnwGbNKwxaQNXYIbwAz7CG192kN3FGQXTiH5tGN0t+EmhTtkyFFA4TL7XHRUJ3S1Z34lRkVxHNbQX1Y+NC6DBNkWy6CxDLX6jDA0e6vMBDyfYRkQBlNvJMFTQW2lVS8vQ5i16SUf6O5l/soQYlppqvp5vpWJV7Km+4dnkPA8xVcj9PxA="));
         EntityPlayer player = new EntityPlayer(server, worldServer, profile, playerinteractmanager);
         player.listName = new ChatComponentText(name);
 
         return player;
     }
-
-
-    public static void removeAll(Player p) {
-        List<EntityPlayer> list = new ArrayList<>();
-        Bukkit.getOnlinePlayers().forEach(op -> list.add(nms(op)));
-        nms(p).playerConnection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER, list));
-    }
-    public static void removeFromAll(Player p) {
-        Bukkit.getOnlinePlayers().forEach(op ->
-                nms(p).playerConnection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER, nms(op))));
-    }
-
 }

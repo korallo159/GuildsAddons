@@ -3,8 +3,8 @@ package koral.guildsaddons;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.flags.StateFlag;
+import koral.guildsaddons.commands.rtp;
 import koral.guildsaddons.guilds.CustomTabList;
-import koral.guildsaddons.guilds.Guild;
 import koral.guildsaddons.guilds.GuildCommand;
 import koral.guildsaddons.commands.Is;
 import koral.guildsaddons.commands.SetRtp;
@@ -13,21 +13,19 @@ import koral.guildsaddons.database.DatabaseConnection;
 import koral.guildsaddons.database.statements.Table;
 import koral.guildsaddons.guilds.GuildSocketForwardChannelListener;
 import koral.guildsaddons.listeners.*;
+import koral.guildsaddons.listeners.InventoryCloseListener;
 import koral.guildsaddons.managers.ConfigManager;
-import koral.guildsaddons.schowek.InventoryClickListener;
-import koral.guildsaddons.schowek.InventoryCloseListener;
-import koral.guildsaddons.schowek.ItemPickUpListener;
-import koral.guildsaddons.schowek.Schowek;
+import koral.guildsaddons.schowek.*;
 import koral.guildsaddons.simpleThings.*;
 import koral.guildsaddons.util.Pair;
 import koral.sectorserver.SectorServer;
+import net.milkbowl.vault.chat.Chat;
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.lang.ref.WeakReference;
-import java.util.Map;
-import java.util.function.Consumer;
 
 
 public final class GuildsAddons extends JavaPlugin implements Listener {
@@ -48,6 +46,8 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
     public void onEnable() {
         this.saveDefaultConfig();
 
+        włączVault();
+
         config = new ConfigManager("items.yml");
         reloadPlugin();
 
@@ -63,13 +63,17 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new PlayerJoin(), this);
         getServer().getPluginManager().registerEvents(new ThrowingTnt(), this);
         getServer().getPluginManager().registerEvents(new EntityExplodeListener(), this);
+        getServer().getPluginManager().registerEvents(new PrepareSmithingListener(), this);
         getServer().getPluginManager().registerEvents(new EntityDamageByEntityListener(), this);
         getServer().getPluginManager().registerEvents(new koral.guildsaddons.listeners.InventoryClickListener(), this);
         getServer().getPluginManager().registerEvents(new koral.guildsaddons.listeners.InventoryCloseListener(), this);
         getServer().getPluginManager().registerEvents(new BlockPlaceListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerDeathListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerInteractListener(), this);
+        getServer().getPluginManager().registerEvents(new koral.guildsaddons.schowek.InventoryClickListener(), this);
+        getServer().getPluginManager().registerEvents(new koral.guildsaddons.schowek.InventoryCloseListener(), this);
 
-        getServer().getPluginManager().registerEvents(new InventoryClickListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerCommandPreprocessListener(), this);
         getServer().getPluginManager().registerEvents(new InventoryCloseListener(), this);
         getServer().getPluginManager().registerEvents(new ItemPickUpListener(), this);
         getServer().getPluginManager().registerEvents(new Is(), this);
@@ -91,6 +95,7 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getCommand("isedit").setExecutor(is);
 
         getCommand("gildia").setExecutor(new GuildCommand());
+        getCommand("rtp").setExecutor(new rtp());
 
         DatabaseConnection.configureDbConnection();
         Table.createTables();
@@ -98,6 +103,19 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         SectorServer.registerForwardChannelListener(GuildSocketForwardChannelListener.class);
 
         Bukkit.getScheduler().runTaskTimer(plugin, () -> Bukkit.getOnlinePlayers().forEach(CustomTabList::updateOnlineAll), 0, 20 * 30);
+    }
+
+    public static Chat chat;
+    static void włączVault() {
+        try {
+            if (plugin.getServer().getPluginManager().getPlugin("Vault") != null) {
+                RegisteredServiceProvider<Economy> rsp = plugin.getServer().getServicesManager().getRegistration(Economy.class);
+                rsp.getProvider();
+                chat  = plugin.getServer().getServicesManager().getRegistration(Chat.class).getProvider();
+            }
+        } catch (Throwable e) {
+            System.out.println("Problem z Valuts");
+        }
     }
 
     @Override
@@ -135,6 +153,7 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
             String s = str.substring(str.indexOf(' ') + 1);
             PlayerDeathListener.elo_constants.put(new Pair<>(Integer.parseInt(min), Integer.parseInt(max)), Integer.parseInt(s));
         });
+        PlayerCommandPreprocessListener.blockedCmds = plugin.getConfig().getStringList("blockedCmdOnOtherGuild");
 
         StoneDrop.reload();
         Stoniarki.reload();

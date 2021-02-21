@@ -1,6 +1,7 @@
 package koral.guildsaddons.listeners;
 
 import koral.guildsaddons.commands.SetRtp;
+import koral.guildsaddons.commands.rtp;
 import koral.guildsaddons.util.Cooldowns;
 import koral.sectorserver.SectorServer;
 import koral.sectorserver.util.Teleport;
@@ -32,11 +33,7 @@ public class PlayerInteract implements Listener {
                 cooldowns.setSystemTime(e.getPlayer());
                 for (String key : SetRtp.rtpConfig.getConfig().getConfigurationSection("rtps").getKeys(false)) {
                     if (SetRtp.rtpConfig.getConfig().getLocation("rtps." + key).equals(e.getClickedBlock().getLocation())) {
-                        Random random = new Random();
-                        UnaryOperator<Double> rand = shift -> random.nextInt(SectorServer.width) * (random.nextInt(SectorServer.serversPerSide()) + 1) + shift;
-                        e.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 750, 1));
-                        Teleport.teleport(e.getPlayer(), new Location(e.getPlayer().getWorld(),
-                                rand.apply(SectorServer.shiftX), 255, rand.apply(SectorServer.shiftZ)));
+                        rtp.tp(e.getPlayer());
                     }
                 }
             }

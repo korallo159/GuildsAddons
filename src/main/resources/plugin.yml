@@ -20,6 +20,9 @@ commands:
   delhome:
     permission: guildsaddons.delhome
     usage: /sethome <nazwa>
+  rtp:
+    permission: guildsaddons.rtp
+    usage: /rtp <player>
   sethome:
     aliases: [ustawdom, ustawhome]
     permission: guildsaddons.sethome
@@ -29,6 +32,7 @@ commands:
     permission: guildsaddons.home
     usage: /home (nazwa)
   itemshop:
+    aliases: [is]
     permission: guildsaddons.itemshop
     usage: /is
   isadmin:

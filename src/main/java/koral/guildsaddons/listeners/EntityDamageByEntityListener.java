@@ -25,12 +25,17 @@ public class EntityDamageByEntityListener implements Listener {
             if (ev.getDamager() instanceof Player) {
                 Player p = (Player) ev.getDamager();
                 Guild guild = Guild.fromLocation(ev.getEntity().getLocation());
+                Guild playerGuild;
+
 
                 if (guild.equals(Guild.fromPlayer(p.getName()))) {
                     p.sendMessage("Nie możesz zniszczyć serca swojej gildi");
                     ev.setCancelled(true);
                 } else if (guild.protect >= System.currentTimeMillis()) {
                     p.sendMessage("Ta gildia jest aktualnie pod chronioną");
+                    ev.setCancelled(true);
+                } else if ((playerGuild = Guild.fromPlayer(p.getName())) != null && playerGuild.alliances.contains(guild.name)) {
+                    p.sendMessage("Nie możesz zniszczyć serca sojuszniczej gildi");
                     ev.setCancelled(true);
                 } else {
                     Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> guild.breakHeart(p));
@@ -70,6 +75,8 @@ public class EntityDamageByEntityListener implements Listener {
 
 
         if (Objects.equals(g1, g2) && g1 != null && !g1.pvp)
+            ev.setCancelled(true);
+        else if (g1 != null && g2 != null && g1.alliances.contains(g2.name))
             ev.setCancelled(true);
 
         return true;

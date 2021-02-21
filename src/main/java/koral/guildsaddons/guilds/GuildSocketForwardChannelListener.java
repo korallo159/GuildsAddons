@@ -99,7 +99,7 @@ public class GuildSocketForwardChannelListener implements ForwardChannelListener
         String playerName = in.readUTF();
         String guildName = in.readUTF();
 
-        GuildCommand.setGuild(playerName, guildName);
+        GuildCommand.setGuild(playerName, guildName.equals("") ? null : guildName);
     }
 
     static void guild_msg(DataInputStream in) throws IOException {

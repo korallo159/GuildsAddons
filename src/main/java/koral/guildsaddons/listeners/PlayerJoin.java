@@ -20,8 +20,6 @@ public class PlayerJoin implements Listener {
     public void onPlayerJoin(PlayerJoinEvent e){
         Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> {
             PlayersStatements.createPlayerQuery(e.getPlayer());
-            //CustomTabList.removeFromAll(e.getPlayer());
-            //CustomTabList.removeAll(e.getPlayer());
             CustomTabList.apply(e.getPlayer());
         });
         Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> homesCompleterGet(e.getPlayer()));

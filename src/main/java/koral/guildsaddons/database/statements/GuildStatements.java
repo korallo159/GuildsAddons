@@ -95,7 +95,7 @@ public class GuildStatements extends Statements {
             while (resultSet.next()) {
                 try {
                     result.add(new Pair<>(
-                            GuildStatements.deserialize((JSONObject) new JSONParser().parse(resultSet.getString("data"))).name,
+                            GuildStatements.deserialize((JSONObject) new JSONParser().parse(resultSet.getString("data"))).tag,
                             (int) resultSet.getDouble("points"))
                     );
                 } catch (ParseException e) {

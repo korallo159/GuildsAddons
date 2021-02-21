@@ -41,6 +41,11 @@ public class PlayerDeathListener implements Listener {
                 k += pair.t1;
                 d -= pair.t2;
 
+                killer.sendTitle(" ", "§a+" + pair.t1 + " §6pkt", 30, 60, 30);
+                killed.sendTitle(" ", "§c-" + pair.t2 + " §6pkt", 30, 60, 30);
+
+                SectorServer.sendToServer("broadcast", "ALL", out -> out.writeUTF("§7" + killer.getDisplayName() + "§a(+" + pair.t1 + ") §6 zabił §7" + killed.getDisplayName() + "§c(-" + pair.t2 + ")"));
+
                 PlayersStatements.setPointsData(killer.getName(), k);
                 PlayersStatements.setPointsData(killed.getName(), d);
 
