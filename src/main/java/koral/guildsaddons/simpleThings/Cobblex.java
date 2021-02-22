@@ -12,8 +12,6 @@ import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 
-import java.awt.*;
-
 public class Cobblex implements Listener {
     static NamespacedKey key = new NamespacedKey(GuildsAddons.plugin, "cobblex");
 

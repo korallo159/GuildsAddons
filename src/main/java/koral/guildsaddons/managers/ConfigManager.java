@@ -3,7 +3,11 @@ package koral.guildsaddons.managers;
 import com.google.common.base.Charsets;
 import koral.guildsaddons.GuildsAddons;
 import org.bukkit.configuration.file.YamlConfiguration;
-import java.io.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 public class ConfigManager {
     public YamlConfiguration config;

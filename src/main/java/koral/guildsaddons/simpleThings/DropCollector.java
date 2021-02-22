@@ -2,16 +2,12 @@ package koral.guildsaddons.simpleThings;
 
 import koral.sectorserver.SectorServer;
 import org.bukkit.GameMode;
-import org.bukkit.World;
-import org.bukkit.block.Chest;
 import org.bukkit.block.Container;
-import org.bukkit.block.DoubleChest;
 import org.bukkit.block.ShulkerBox;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.function.Consumer;

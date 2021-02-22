@@ -3,24 +3,27 @@ package koral.guildsaddons;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.flags.StateFlag;
-import koral.guildsaddons.commands.*;
+import koral.guildsaddons.commands.Is;
+import koral.guildsaddons.commands.SetRtp;
+import koral.guildsaddons.commands.Sethome;
+import koral.guildsaddons.commands.rtp;
+import koral.guildsaddons.database.DatabaseConnection;
+import koral.guildsaddons.database.statements.Table;
 import koral.guildsaddons.guilds.CustomTabList;
 import koral.guildsaddons.guilds.GuildAdminCommand;
 import koral.guildsaddons.guilds.GuildCommand;
-import koral.guildsaddons.database.DatabaseConnection;
-import koral.guildsaddons.database.statements.Table;
 import koral.guildsaddons.guilds.GuildSocketForwardChannelListener;
 import koral.guildsaddons.listeners.*;
-import koral.guildsaddons.listeners.InventoryCloseListener;
 import koral.guildsaddons.managers.ConfigManager;
-import koral.guildsaddons.schowek.*;
+import koral.guildsaddons.schowek.ItemPickUpListener;
+import koral.guildsaddons.schowek.PlayerInteractListener;
+import koral.guildsaddons.schowek.Schowek;
 import koral.guildsaddons.simpleThings.*;
 import koral.guildsaddons.util.Pair;
 import koral.guildsaddons.util.PanelYesNo;
 import koral.sectorserver.SectorServer;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
-import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -102,7 +105,7 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
 
         SectorServer.registerForwardChannelListener(GuildSocketForwardChannelListener.class);
 
-        Bukkit.getScheduler().runTaskTimer(plugin, () -> Bukkit.getOnlinePlayers().forEach(CustomTabList::updateOnlineAll), 0, 20 * 30);
+        Bukkit.getScheduler().runTaskTimer(plugin, () -> Bukkit.getOnlinePlayers().forEach(CustomTabList::updateOnlineAll), 0, 20 * 10);
     }
 
     public static Chat chat;

@@ -3,20 +3,13 @@ package koral.guildsaddons.listeners;
 import koral.guildsaddons.commands.SetRtp;
 import koral.guildsaddons.commands.rtp;
 import koral.guildsaddons.util.Cooldowns;
-import koral.sectorserver.SectorServer;
-import koral.sectorserver.util.Teleport;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 
 import java.util.HashMap;
-import java.util.Random;
-import java.util.function.UnaryOperator;
 
 
 public class PlayerInteract implements Listener {

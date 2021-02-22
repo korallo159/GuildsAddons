@@ -2,7 +2,6 @@ package koral.guildsaddons.guilds;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import io.netty.channel.unix.Socket;
 import koral.guildsaddons.GuildsAddons;
 import koral.guildsaddons.database.statements.GuildStatements;
 import koral.guildsaddons.database.statements.PlayersStatements;
@@ -12,15 +11,10 @@ import koral.sectorserver.SectorServer;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.craftbukkit.v1_16_R3.CraftOfflinePlayer;
 import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;

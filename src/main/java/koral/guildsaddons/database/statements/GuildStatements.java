@@ -2,7 +2,6 @@ package koral.guildsaddons.database.statements;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
 import koral.guildsaddons.guilds.CustomTabList;
 import koral.guildsaddons.guilds.Guild;
 import koral.guildsaddons.util.Pair;
@@ -83,9 +82,6 @@ public class GuildStatements extends Statements {
     }
     public static Guild deserialize(JSONObject json) {
         return new Gson().fromJson(json.toJSONString(), Guild.class);
-    }
-    public static Guild deserialize(JsonElement json) {
-        return new Gson().fromJson(json.getAsString(), Guild.class);
     }
 
     public static List<Pair<String, Integer>> getTopGuilds() {

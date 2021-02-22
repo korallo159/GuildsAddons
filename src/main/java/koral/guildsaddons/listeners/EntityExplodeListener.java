@@ -44,7 +44,8 @@ public class EntityExplodeListener implements Listener {
                 if (guild.protect >= System.currentTimeMillis()) {
                     ev.setCancelled(true);
                     SectorServer.doForNonNull(((TNTPrimed) ev.getEntity()).getSource(), source -> source.sendMessage("Gildia " + guild.name + " jest jeszcze pod ochroną!"));
-                }
+                } else
+                    guild.attack();
             });
         }
     }

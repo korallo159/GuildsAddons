@@ -1,6 +1,8 @@
 package koral.guildsaddons.listeners;
 
 import koral.guildsaddons.guilds.Guild;
+import koral.guildsaddons.guilds.GuildCommand;
+import koral.sectorserver.SectorServer;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,5 +15,12 @@ public class BlockPlaceListener implements Listener {
             ev.getPlayer().sendMessage("Nie możesz stawiać tnt tak wysoko");
             ev.setCancelled(true);
         }
+
+        SectorServer.doForNonNull(Guild.fromPlayer(ev.getPlayer().getName()), guild -> {
+            if (guild.isAttacking() && guild.getRegion().contains(GuildCommand.locToVec(ev.getBlock().getLocation()))) {
+                ev.getPlayer().sendMessage("§cNie ma czasu na budowanie! Chroń swojej gildi przed najeźdźami!");
+                ev.setCancelled(true);
+            }
+        });
     }
 }

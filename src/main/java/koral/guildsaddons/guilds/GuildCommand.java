@@ -20,7 +20,6 @@ import koral.guildsaddons.util.PanelYesNo;
 import koral.guildsaddons.util.SerializableLocation;
 import koral.sectorserver.PluginChannelListener;
 import koral.sectorserver.SectorServer;
-import koral.sectorserver.commands.Tpa;
 import koral.sectorserver.util.Teleport;
 import org.bukkit.*;
 import org.bukkit.command.Command;
@@ -379,8 +378,10 @@ public class GuildCommand implements TabExecutor {
                 guild.subLeader = null;
             else if (p.getName().equals(guild.leader))
                 return msg(p, "Nie możesz opuścić własnej gildi");
-            else
-                return msg(p, "Nastąpiły komplikacje z opuszczaniem gildi, skontaktuj sie z administratorem");
+            else {
+                setGuild(p.getName(), (Guild) null);
+                return msg(p, "Nastąpiły komplikacje z opuszczaniem gildi, spróbuj ponownie, jeśli sytuacja się powtórzy skontaktuj sie z administratorem");
+            }
 
         guild.sendToMembers("%s opuścił gildię", p.getDisplayName());
 
@@ -406,31 +407,30 @@ public class GuildCommand implements TabExecutor {
         if (guild == null) return msg(p, "Nie posiadasz gildii");
 
         if (p.getName().equals(guild.leader) || p.getName().equals(guild.subLeader)) {
+            String toDelete = null;
             if (args[1].equalsIgnoreCase(guild.subLeader)) {
-                PlayersStatements.setGuild(guild.subLeader, null);
+                toDelete = guild.subLeader;
                 guild.subLeader = null;
             } else {
                 boolean deleted = false;
                 for (int i=0; i < guild.members.size(); i++)
                     if (guild.members.get(i).equalsIgnoreCase(args[1])) {
-                        args[1] = guild.members.remove(i);
-
-                        guild.sendToMembers("%s wyrzucił %s z gildi!", p.getDisplayName(), args[1]);
-                        setGuildOnEveryServers(args[1], null);
+                        toDelete = guild.members.remove(i);
 
                         deleted = true;
-
-                        SectorServer.sendToServer("removeMember", "ALL", out -> {
-                            out.writeUTF(guild.region_world);
-                            out.writeUTF(guild.region);
-                            out.writeUTF(args[1]);
-                        });
 
                         break;
                     }
                 if (!deleted)
                     return msg(p, "Niepoprawna nazwa gracza");
             }
+            guild.sendToMembers("%s wyrzucił %s z gildi!", p.getDisplayName(), guild.subLeader);
+            setGuildOnEveryServers(toDelete, null);
+            SectorServer.sendToServer("removeMember", "ALL", out -> {
+                out.writeUTF(guild.region_world);
+                out.writeUTF(guild.region);
+                out.writeUTF(args[1]);
+            });
             guild.recalculatePoints();
         } else
             return msg(p, "Nie możesz tego zrobić");

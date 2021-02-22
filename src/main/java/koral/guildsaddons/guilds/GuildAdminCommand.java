@@ -2,13 +2,10 @@ package koral.guildsaddons.guilds;
 
 import koral.guildsaddons.GuildsAddons;
 import koral.guildsaddons.database.statements.PlayersStatements;
-import koral.guildsaddons.util.PanelYesNo;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
-import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.List;

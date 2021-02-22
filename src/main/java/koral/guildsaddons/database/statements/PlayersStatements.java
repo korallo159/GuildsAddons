@@ -138,7 +138,7 @@ public class PlayersStatements extends Statements {
     }
 
     public static void setGuild(String playerName, Guild guild) {
-        stringSetter("UPDATE Players SET guild=? WHERE NICK=?", guild == null ? null : guild.name, playerName);
+        stringSetter("UPDATE Players SET guild=? WHERE lower(NICK)=?", guild == null ? null : guild.name, playerName.toLowerCase());
         if (GuildsAddons.chat != null)
             GuildsAddons.chat.setPlayerSuffix((World) null, playerName, guild == null ? "" : (" §2[§a" + guild.tag + "§2]"));
     }

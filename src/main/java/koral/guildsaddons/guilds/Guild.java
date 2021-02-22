@@ -5,7 +5,6 @@ import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.Flags;
-import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import koral.guildsaddons.GuildsAddons;
@@ -23,15 +22,11 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.lang.ref.WeakReference;
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,6 +34,7 @@ public class Guild  {
     //TODO: wczytywać
     public static int membersLimit = 30;
     public static int tntHeight = 48;
+    public static int attackTime = 30;
 
     public static String greetPrefix = "Wszedłeś na teren gildi ";
     public static int region_priority = 5;
@@ -106,6 +102,20 @@ public class Guild  {
         this.points = PlayersStatements.getGuildPoints(this);
         save();
         CustomTabList.updateGuildsRank();
+    }
+
+
+    public boolean isAttacking() {
+        return attackTask != null;
+    }
+    private transient BukkitTask attackTask;
+    public void attack() {
+        if (!isAttacking())
+            sendToMembers("§6Twoja gildia jest §4Atakowana§6!");
+        SectorServer.doForNonNull(attackTask, BukkitTask::cancel);
+
+        // trzyma gildię w ramie aby raid sie nie zresetował po zlogowaniu wszystkich członków gildi
+        attackTask = Bukkit.getScheduler().runTaskLater(GuildsAddons.getPlugin(), () -> attackTask = null, attackTime * 20);
     }
 
 

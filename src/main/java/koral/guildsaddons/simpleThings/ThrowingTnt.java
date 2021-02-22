@@ -1,7 +1,6 @@
 package koral.guildsaddons.simpleThings;
 
 import koral.guildsaddons.GuildsAddons;
-import koral.guildsaddons.util.Cooldowns;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.EntityType;
@@ -14,7 +13,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 

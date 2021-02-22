@@ -1,4 +1,5 @@
 package koral.guildsaddons.commands;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import koral.guildsaddons.GuildsAddons;
@@ -19,6 +20,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
