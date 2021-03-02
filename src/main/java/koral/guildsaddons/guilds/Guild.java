@@ -14,6 +14,7 @@ import koral.guildsaddons.util.Pair;
 import koral.guildsaddons.util.SerializableLocation;
 import koral.sectorserver.SectorServer;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.EnderCrystal;
@@ -23,6 +24,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.scoreboard.Team;
 
 import java.lang.ref.WeakReference;
 import java.util.*;
@@ -108,7 +110,7 @@ public class Guild  {
     public boolean isAttacking() {
         return attackTask != null;
     }
-    private transient BukkitTask attackTask;
+    private BukkitTask attackTask;
     public void attack() {
         if (!isAttacking())
             sendToMembers("§6Twoja gildia jest §4Atakowana§6!");
@@ -118,6 +120,19 @@ public class Guild  {
         attackTask = Bukkit.getScheduler().runTaskLater(GuildsAddons.getPlugin(), () -> attackTask = null, attackTime * 20);
     }
 
+    public void updateNameTag(String playerName) {
+        Bukkit.getScheduler().runTask(GuildsAddons.getPlugin(), () -> {
+            Team team = Bukkit.getScoreboardManager().getMainScoreboard().getTeam(name);
+            if (team == null) {
+                team = Bukkit.getScoreboardManager().getMainScoreboard().registerNewTeam(name);
+                team.setSuffix(" §2[§a" + tag + "§2]");
+                team.setColor(ChatColor.GOLD);
+            }
+
+            team.addEntry(playerName);
+            SectorServer.doForNonNull(Bukkit.getOfflinePlayerIfCached(playerName), team::addPlayer);
+        });
+    }
 
     public boolean sendToMembers(String format, String... args) {
         String msg = String.format(format, args);
@@ -218,11 +233,17 @@ public class Guild  {
         forget.accept(leader);
         if (subLeader != null) forget.accept(subLeader);
         members.forEach(forget::accept);
+
+        Bukkit.getScheduler().runTask(GuildsAddons.getPlugin(),
+                () -> SectorServer.doForNonNull(Bukkit.getScoreboardManager().getMainScoreboard().getTeam(name), Team::unregister));
     }
     public static void playerJoinEvent(PlayerJoinEvent ev) {
         Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> {
             String guildName = PlayersStatements.getGuildName(ev.getPlayer().getName());
-            fromPlayer.put(ev.getPlayer().getName().toLowerCase(), guildName == null ? null : fromName(guildName));
+            Guild guild = guildName == null ? null : fromName(guildName);
+            fromPlayer.put(ev.getPlayer().getName().toLowerCase(), guild);
+            if (guild != null)
+                guild.updateNameTag(ev.getPlayer().getName());
         });
     }
     public static void playerQuitEvent(PlayerQuitEvent ev) {

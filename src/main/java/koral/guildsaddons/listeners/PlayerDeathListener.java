@@ -57,6 +57,9 @@ public class PlayerDeathListener implements Listener {
 
                 CustomTabList.updatePlayersRank();
                 CustomTabList.updateGuildsRank();
+
+                GuildsAddons.pointsObjective.getScore(killer.getName()).setScore((int) k);
+                GuildsAddons.pointsObjective.getScore(killed.getName()).setScore((int) d);
             });
         });
     }

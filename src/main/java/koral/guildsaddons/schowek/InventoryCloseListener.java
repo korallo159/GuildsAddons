@@ -2,6 +2,7 @@ package koral.guildsaddons.schowek;
 
 import koral.guildsaddons.GuildsAddons;
 import koral.guildsaddons.database.statements.PlayersStatements;
+import koral.sectorserver.util.SectorScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -36,11 +37,9 @@ public class InventoryCloseListener implements Listener {
                     json.put(key, num + item.getAmount());
                 }
             });
-
-            Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.plugin, () -> {
-                PlayersStatements.setPlayerData((Player) ev.getPlayer(), json.toJSONString());
-                Bukkit.getScheduler().runTask(GuildsAddons.plugin, () -> checkEq(ev, true));
-            });
+            SectorScheduler.addTaskToQueue("prePlayerChangeSectorEvent",
+                    () -> PlayersStatements.setPlayerData((Player) ev.getPlayer(), json.toJSONString()));
+            checkEq(ev, true);
         }
     }
 
@@ -84,8 +83,10 @@ public class InventoryCloseListener implements Listener {
             }
         }
         if (!toSend.isEmpty())
-            Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.plugin, () ->
-                    PlayersStatements.updatePlayerData(p, toSend));
+            SectorScheduler.addTaskToQueue("prePlayerChangeSectorEvent", () -> {
+                        PlayersStatements.updatePlayerData(p, toSend);
+                        System.out.println(toSend);
+                    });
 
     }
 }

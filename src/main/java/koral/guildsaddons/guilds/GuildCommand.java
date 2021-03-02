@@ -33,6 +33,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scoreboard.Team;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -186,6 +187,8 @@ public class GuildCommand implements TabExecutor {
         if (Guild.fromPlayer.containsKey(playerName)) {
             PlayersStatements.setGuild(playerName, guild);
             Guild.fromPlayer.put(playerName, guild);
+            if (guild != null)
+                guild.updateNameTag(playerName);
             return true;
         }
         return false;

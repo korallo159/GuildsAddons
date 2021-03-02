@@ -1,5 +1,6 @@
 package koral.guildsaddons;
 
+import com.sk89q.worldedit.extent.clipboard.io.SpongeSchematicWriter;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.flags.StateFlag;
@@ -28,6 +29,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.RenderType;
 
 
 public final class GuildsAddons extends JavaPlugin implements Listener {
@@ -36,6 +40,7 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
 
     public static GuildsAddons plugin;
 
+    public static Objective pointsObjective;
 
     @Override
     public void onLoad() {
@@ -47,6 +52,12 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         this.saveDefaultConfig();
+
+        pointsObjective = Bukkit.getScoreboardManager().getMainScoreboard().getObjective("pkt");
+        if (pointsObjective == null) {
+            pointsObjective = Bukkit.getScoreboardManager().getMainScoreboard().registerNewObjective("pkt", "dummy", "pkt");
+            pointsObjective.setDisplaySlot(DisplaySlot.BELOW_NAME);
+        }
 
         włączVault();
 
@@ -114,7 +125,7 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
             if (plugin.getServer().getPluginManager().getPlugin("Vault") != null) {
                 RegisteredServiceProvider<Economy> rsp = plugin.getServer().getServicesManager().getRegistration(Economy.class);
                 rsp.getProvider();
-                chat  = plugin.getServer().getServicesManager().getRegistration(Chat.class).getProvider();
+                chat = plugin.getServer().getServicesManager().getRegistration(Chat.class).getProvider();
             }
         } catch (Throwable e) {
             System.out.println("Problem z Valuts");

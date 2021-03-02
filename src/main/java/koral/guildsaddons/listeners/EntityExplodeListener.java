@@ -36,10 +36,6 @@ public class EntityExplodeListener implements Listener {
 
         // wybuchanie tnt na terenie gildi
         if (ev.getEntity() instanceof TNTPrimed) {
-            if (ev.getEntity().getLocation().getY() > Guild.tntHeight) {
-                ev.setCancelled(true);
-                return;
-            }
             SectorServer.doForNonNull(Guild.fromLocation(ev.getEntity().getLocation()), guild -> {
                 if (guild.protect >= System.currentTimeMillis()) {
                     ev.setCancelled(true);

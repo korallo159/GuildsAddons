@@ -6,6 +6,7 @@ import com.sk89q.worldguard.domains.DefaultDomain;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
 import koral.guildsaddons.database.statements.GuildStatements;
+import koral.guildsaddons.util.PanelYesNo;
 import koral.sectorserver.ForwardChannelListener;
 import koral.sectorserver.SectorServer;
 import org.bukkit.Bukkit;
@@ -99,8 +100,9 @@ public class GuildSocketForwardChannelListener implements ForwardChannelListener
     static void guild_set(DataInputStream in) throws IOException {
         String playerName = in.readUTF();
         String guildName = in.readUTF();
+        guildName = guildName.equals("") ? null : guildName;
 
-        GuildCommand.setGuild(playerName, guildName.equals("") ? null : guildName);
+        GuildCommand.setGuild(playerName, guildName);
     }
 
     static void guild_msg(DataInputStream in) throws IOException {

@@ -242,6 +242,8 @@ public class CustomTabList {
            updateDeaths(p, PlayersStatements.getDeathsData(p.getName()));
            updatePoints(p, PlayersStatements.getPointsData(p.getName()));
         });
+        Bukkit.getScheduler().runTask(GuildsAddons.getPlugin(),
+                () -> GuildsAddons.pointsObjective.getScore(p.getName()).setScore((int) PlayersStatements.getPointsData(p.getName())));
     }
 
     private static EntityPlayer create(MinecraftServer server, WorldServer worldServer, String name, int num) {
