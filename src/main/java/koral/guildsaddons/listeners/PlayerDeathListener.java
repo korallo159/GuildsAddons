@@ -6,15 +6,21 @@ import koral.guildsaddons.guilds.CustomTabList;
 import koral.guildsaddons.guilds.Guild;
 import koral.guildsaddons.util.Pair;
 import koral.sectorserver.SectorServer;
+import org.apache.commons.lang.time.DateUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PlayerDeathListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
@@ -22,6 +28,9 @@ public class PlayerDeathListener implements Listener {
         if (ev.isCancelled()) return;
         Player killed = ev.getEntity();
         SectorServer.doForNonNull(killed.getKiller(), killer -> {
+            if(isReadyForKill(killer))
+                setData(killer);
+            else return;
             if(killer.getAddress().getAddress().equals(killed.getAddress().getAddress())){
                 SectorServer.sendToServer("helpop", "ALL", out ->{
                     out.writeUTF("GuildsWatchDog");
@@ -97,4 +106,36 @@ public class PlayerDeathListener implements Listener {
 
         return 0;
     }
+
+    private void setData(Player player){
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+        Date newDate =DateUtils.addMinutes(new Date(), 30);
+        String dateString = sdf.format(newDate);
+        player.getScoreboardTags().add("killtimer_" + dateString);
+    }
+
+    public boolean isReadyForKill(Player player){
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+        AtomicBoolean isReady = new AtomicBoolean(true);
+        player.getScoreboardTags().forEach(tag ->{
+            if(tag.startsWith("killtimer_")){
+                String data = tag.replace("killtimer_", "");
+                try {
+                    Date date = sdf.parse(data);
+                    if(date.before(new Date())){
+                       isReady.set(false);
+                    }
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        if(!isReady.get()){
+            return false;
+        }
+
+        return true;
+    }
+
+
 }
