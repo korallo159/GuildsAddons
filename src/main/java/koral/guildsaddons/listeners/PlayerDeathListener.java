@@ -22,6 +22,13 @@ public class PlayerDeathListener implements Listener {
         if (ev.isCancelled()) return;
         Player killed = ev.getEntity();
         SectorServer.doForNonNull(killed.getKiller(), killer -> {
+            if(killer.getAddress().getAddress().equals(killed.getAddress().getAddress())){
+                SectorServer.sendToServer("helpop", "ALL", out ->{
+                    out.writeUTF("GuildsWatchDog");
+                    out.writeUTF("Gracz " + killer.getName() + " zabił gracza " + killed.getName() + " który ma to samo ip. Punkty nie zostały przydzielone" );
+                });
+                return;
+            }
             Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> {
                 int kills = PlayersStatements.getKillsData(killer.getName()) + 1;
                 int deaths = PlayersStatements.getDeathsData(killed.getName()) + 1;
