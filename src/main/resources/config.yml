@@ -23,8 +23,8 @@ Permnames:
   drop.svip: §bSVIP
 
 blockedCmdOnOtherGuild:
-  - '/tpaccept'
-  - '/tpa'
-  - '/ustawhome'
-  - '/sethome'
-  - '/ustawdom'
+  - '/tpaccept '
+  - '/tpa '
+  - '/ustawhome '
+  - '/sethome '
+  - '/ustawdom '

@@ -42,6 +42,8 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class GuildCommand implements TabExecutor {
+    public static final String prefix = "§2[§aGildie§2]§6 ";
+
     public static void reloadGuildItems() {
         ConfigManager config = new ConfigManager("guild items.yml");
 
@@ -363,7 +365,7 @@ public class GuildCommand implements TabExecutor {
             PanelYesNo.create(p, "&4&lCzy napewno chcesz usunąć gildie&9&l?", "§aOczywiście że chcę", "§cnie tym razem", () -> {
                 guild.sendToMembers("%s usunął gildię", p.getDisplayName());
 
-                p.sendMessage("Usunołeś gildię " + guild.name);
+                p.sendMessage(prefix + "Usunołeś gildię " + guild.name);
 
                 guild.delete();
             }, null);
@@ -388,7 +390,7 @@ public class GuildCommand implements TabExecutor {
 
         guild.sendToMembers("%s opuścił gildię", p.getDisplayName());
 
-        p.sendMessage("Opuściłeś gildię " + guild.name);
+        p.sendMessage(prefix + "Opuściłeś gildię " + guild.name);
 
         setGuild(p.getName(), (Guild) null);
 
@@ -459,7 +461,7 @@ public class GuildCommand implements TabExecutor {
 
             Consumer<String> sendToToInvite = msg -> {
                 if (toInvite instanceof Player)
-                    ((Player) toInvite).sendMessage(msg);
+                    ((Player) toInvite).sendMessage(prefix + msg);
                 else
                     SectorServer.sendToServer("msg", "ALL", out -> {
                         out.writeUTF(toInvite.getName());
@@ -670,7 +672,7 @@ public class GuildCommand implements TabExecutor {
             guild .alliances.add(guild2.name);
             guild2.alliances.add(guild .name);
             guild.sendToMembers("%s przyjął zaproszenie do sojuszu z gildią %s", p.getDisplayName(), guild2.name);
-            guild2.sendToMembers("Gildia %s przyjała propozycję sojuszu", guild.name);
+            guild2.sendToMembers("Gildia %s przyjeła propozycję sojuszu", guild.name);
 
             guild.save();
             guild2.save();
@@ -684,7 +686,7 @@ public class GuildCommand implements TabExecutor {
         });
 
         guild.sendToMembers("%s wysłał propozycje sojuszu do gildi %s, która wygaśnie za 2 minuty", p.getDisplayName(), guild2.name);
-        guild2.sendToMembers("Gildia %s wysłała do was propozycję sojuszu, która wygaśnie za 2 minuty", guild2.name);
+        guild2.sendToMembers("Gildia %s wysłała do was propozycję sojuszu, która wygaśnie za 2 minuty", guild.name);
         Bukkit.getScheduler().runTaskLater(GuildsAddons.getPlugin(), () -> {
             if (allyInviteMap.remove(guild.name, fguild2.name) && !guild.alliances.contains(fguild2.name)) {
                 guild .sendToMembers("Zaproszenie do sojuszu dla gildi %s wygasło", fguild2.name);

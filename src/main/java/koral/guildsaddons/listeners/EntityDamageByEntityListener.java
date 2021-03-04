@@ -70,8 +70,8 @@ public class EntityDamageByEntityListener implements Listener {
                 return false;
         }
 
-        Guild g1 = Guild.fromPlayer(p1.getName());
-        Guild g2 = Guild.fromPlayer(p2.getName());
+        Guild g1 = Guild.fromPlayerUnSafe(p1.getName());
+        Guild g2 = Guild.fromPlayerUnSafe(p2.getName());
 
 
         if (Objects.equals(g1, g2) && g1 != null && !g1.pvp)

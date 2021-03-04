@@ -2,6 +2,7 @@ package koral.guildsaddons;
 
 import com.sk89q.worldedit.extent.clipboard.io.SpongeSchematicWriter;
 import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.blacklist.event.EventType;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import koral.guildsaddons.commands.Is;
@@ -26,13 +27,22 @@ import koral.sectorserver.SectorServer;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
-import org.bukkit.event.Listener;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.command.PluginCommandYamlParser;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.event.*;
+import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.RenderType;
 
+import java.io.*;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
 public final class GuildsAddons extends JavaPlugin implements Listener {
     public static WorldGuardPlugin rg;
@@ -64,37 +74,35 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         config = new ConfigManager("items.yml");
         reloadPlugin();
 
-        //getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-        //getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", new PluginChannelListener());
-        getServer().getPluginManager().registerEvents(new PlayerInteract(), this);
-        getServer().getPluginManager().registerEvents(new DeletenMending(), this);
-        getServer().getPluginManager().registerEvents(new DropCollector(), this);
-        getServer().getPluginManager().registerEvents(new Stoniarki(), this);
-        getServer().getPluginManager().registerEvents(new Boyki(), this);
-        getServer().getPluginManager().registerEvents(new Cobblex(), this);
-        getServer().getPluginManager().registerEvents(new PlayerQuit(), this);
-        getServer().getPluginManager().registerEvents(new PlayerJoin(), this);
-        getServer().getPluginManager().registerEvents(new ThrowingTnt(), this);
-        getServer().getPluginManager().registerEvents(new EntityExplodeListener(), this);
-        getServer().getPluginManager().registerEvents(new PrepareSmithingListener(), this);
-        getServer().getPluginManager().registerEvents(new EntityDamageByEntityListener(), this);
-        getServer().getPluginManager().registerEvents(new koral.guildsaddons.listeners.InventoryClickListener(), this);
-        getServer().getPluginManager().registerEvents(new koral.guildsaddons.listeners.InventoryCloseListener(), this);
-        getServer().getPluginManager().registerEvents(new BlockPlaceListener(), this);
-        getServer().getPluginManager().registerEvents(new PlayerDeathListener(), this);
-        getServer().getPluginManager().registerEvents(new PlayerInteractListener(), this);
-        getServer().getPluginManager().registerEvents(new koral.guildsaddons.schowek.InventoryClickListener(), this);
-        getServer().getPluginManager().registerEvents(new koral.guildsaddons.schowek.InventoryCloseListener(), this);
+        registerListener(new PlayerInteract());
+        registerListener(new DeletenMending());
+        registerListener(new DropCollector());
+        registerListener(new Stoniarki());
+        registerListener(new Boyki());
+        registerListener(new Cobblex());
+        registerListener(new PlayerQuit());
+        registerListener(new PlayerJoin());
+        registerListener(new ThrowingTnt());
+        registerListener(new EntityExplodeListener());
+        registerListener(new PrepareSmithingListener());
+        registerListener(new EntityDamageByEntityListener());
+        registerListener(new koral.guildsaddons.listeners.InventoryClickListener());
+        registerListener(new koral.guildsaddons.listeners.InventoryCloseListener());
+        registerListener(new BlockPlaceListener());
+        registerListener(new PlayerDeathListener());
+        registerListener(new PlayerInteractListener());
+        registerListener(new koral.guildsaddons.schowek.InventoryClickListener());
+        registerListener(new koral.guildsaddons.schowek.InventoryCloseListener());
 
-        getServer().getPluginManager().registerEvents(new PlayerCommandPreprocessListener(), this);
-        getServer().getPluginManager().registerEvents(new InventoryCloseListener(), this);
-        getServer().getPluginManager().registerEvents(new ItemPickUpListener(), this);
-        getServer().getPluginManager().registerEvents(new PanelYesNo(), this);
-        getServer().getPluginManager().registerEvents(new Is(), this);
+        registerListener(new PlayerCommandPreprocessListener());
+        registerListener(new InventoryCloseListener());
+        registerListener(new ItemPickUpListener());
+        registerListener(new PanelYesNo());
+        registerListener(new Is());
         getCommand("schowek").setExecutor(new Schowek());
 
         StoneDrop stoneDrop = new StoneDrop();
-        getServer().getPluginManager().registerEvents(stoneDrop, this);
+        registerListener(stoneDrop);
         getCommand("turbodrop").setExecutor(stoneDrop);
         getCommand("drop").setExecutor(stoneDrop);
         getCommand("setrtp").setExecutor(new SetRtp());
@@ -111,12 +119,117 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getCommand("gadmin").setExecutor(new GuildAdminCommand());
         getCommand("rtp").setExecutor(new rtp());
 
+        PluginCommandYamlParser.parse(this).forEach(cmd -> {
+            PluginCommand pcmd = getCommand(cmd.getName());
+            CommandExecutor executor = pcmd.getExecutor();
+            pcmd.setExecutor((sender, cmdObj, label, args) -> {
+                try {
+                    return executor.onCommand(sender, cmdObj, label, args);
+                } catch (Throwable e) {
+                    GuildsAddons.registerError(ErrorType.COMMAND, cmdObj.getName(), e);
+                    throw e;
+                }
+            });
+        });
+
         DatabaseConnection.configureDbConnection();
         Table.createTables();
 
         SectorServer.registerForwardChannelListener(GuildSocketForwardChannelListener.class);
 
         Bukkit.getScheduler().runTaskTimer(plugin, () -> Bukkit.getOnlinePlayers().forEach(CustomTabList::updateOnlineAll), 0, 20 * 10);
+    }
+    void registerListener(Listener listener) {
+        try {
+            Method create = EventExecutor.class.getDeclaredMethod("create", Method.class, Class.class);
+            create.setAccessible(true);
+            for (Method met : listener.getClass().getDeclaredMethods()) {
+                met.setAccessible(true);
+                try {
+                    if (met.isAnnotationPresent(EventHandler.class)) {
+                        EventHandler an = met.getDeclaredAnnotation(EventHandler.class);
+
+                        Class<? extends Event> evClass = (Class<? extends Event>) (met.getParameterTypes()[0]);
+                        EventExecutor standardExecutor = (EventExecutor) create.invoke(null, met, evClass);
+
+                        String metName = met.getName();
+                        Class<?> listenerClass = listener.getClass();
+                        EventExecutor executor = (_listener, event) -> {
+                            try {
+                                standardExecutor.execute(_listener, event);
+                            } catch (EventException ee) {
+                                throw ee;
+                            } catch (Throwable e) {
+                                GuildsAddons.registerError(ErrorType.EVENT, listenerClass.getSimpleName() + "." + metName, e);
+                                throw e;
+                            }
+                        };
+
+                        Bukkit.getPluginManager().registerEvent(evClass, listener, an.priority(), executor, plugin, an.ignoreCancelled());
+                    }
+                } catch (Throwable e) {
+                    System.err.println("Niepoprawy EventHandler " + listener.getClass().getName() + "." + met.getName());
+                }
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+    public enum ErrorType {
+        EVENT,
+        COMMAND;
+    }
+    private static String errorToString(Throwable e) {
+        Writer writer = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(writer);
+        e.printStackTrace(printWriter);
+        return writer.toString();
+    }
+    public static void registerError(ErrorType type, String location, Throwable error) {
+        String err = errorToString(error);
+
+        System.out.println("Znaleziono błąd");
+        System.out.println(err);
+
+        if (new File(GuildsAddons.getPlugin().getDataFolder(), "errors " + type.name() + " " + location + ".yml").exists()) {
+            ConfigManager secondConfig = new ConfigManager("errors " + type.name() + " " + location + ".yml");
+            List<String> list = secondConfig.config.getStringList("errors");
+            if (!list.contains(err)) {
+                list.add(err);
+                secondConfig.config.set("errors", list);
+                secondConfig.save();
+            }
+            return;
+        }
+
+        ConfigManager config = new ConfigManager("errors.yml");
+
+        Consumer<List<String>> set = list -> {
+            config.config.set(type.name() + "." + location, list);
+            config.save();
+        };
+
+        ConfigurationSection section = config.config.getConfigurationSection(type.name());
+        if (section == null) {
+            List<String> list = new ArrayList<>();
+            list.add(err);
+            set.accept(list);
+        } else {
+            List<String> list = section.getStringList(location);
+            if (!list.contains(err)) {
+                if (list.size() >= 5) {
+                    set.accept(null);
+                    ConfigManager secondConfig = new ConfigManager("errors " + type.name() + " " + location + ".yml");
+                    list = secondConfig.config.getStringList("errors");
+                    list.add(err);
+                    secondConfig.config.set("errors", list);
+                    secondConfig.save();
+                } else {
+                    list.add(err);
+                    set.accept(list);
+                }
+            }
+        }
     }
 
     public static Chat chat;

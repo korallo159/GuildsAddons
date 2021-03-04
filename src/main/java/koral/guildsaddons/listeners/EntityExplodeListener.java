@@ -11,6 +11,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityExplodeEvent;
 
 import java.lang.reflect.InvocationTargetException;
+import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
+import java.util.Date;
 
 public class EntityExplodeListener implements Listener {
     @EventHandler(priority = EventPriority.LOW)
@@ -39,9 +42,16 @@ public class EntityExplodeListener implements Listener {
             SectorServer.doForNonNull(Guild.fromLocation(ev.getEntity().getLocation()), guild -> {
                 if (guild.protect >= System.currentTimeMillis()) {
                     ev.setCancelled(true);
-                    SectorServer.doForNonNull(((TNTPrimed) ev.getEntity()).getSource(), source -> source.sendMessage("Gildia " + guild.name + " jest jeszcze pod ochroną!"));
-                } else
-                    guild.attack();
+                    SectorServer.doForNonNull(((TNTPrimed) ev.getEntity()).getSource(), source -> source.sendMessage("§6Gildia " + guild.name + " jest jeszcze pod ochroną!"));
+                } else {
+                    int hour = ZonedDateTime.now().getHour();
+                    if (hour >= 10 && hour <= 22) {
+                        guild.attack();
+                    } else {
+                        ev.setCancelled(true);
+                        SectorServer.doForNonNull(((TNTPrimed) ev.getEntity()).getSource(), source -> source.sendMessage("§6Nie można rajdować gildi w tych godzinach! spróbuj między 10 a 22"));
+                    }
+                }
             });
         }
     }

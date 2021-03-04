@@ -8,7 +8,6 @@ import koral.guildsaddons.util.Pair;
 import koral.sectorserver.SectorServer;
 import org.apache.commons.lang.time.DateUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

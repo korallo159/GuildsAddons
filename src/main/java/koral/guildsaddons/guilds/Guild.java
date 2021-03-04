@@ -36,7 +36,7 @@ public class Guild  {
     //TODO: wczytywać
     public static int membersLimit = 30;
     public static int tntHeight = 48;
-    public static int attackTime = 30;
+    public static int attackTime = 120;
 
     public static String greetPrefix = "Wszedłeś na teren gildi ";
     public static int region_priority = 5;
@@ -135,7 +135,7 @@ public class Guild  {
     }
 
     public boolean sendToMembers(String format, String... args) {
-        String msg = String.format(format, args);
+        String msg = String.format(GuildCommand.prefix + format, args);
 
         SectorServer.sendToServer("guild_msg", "ALL", out -> {
             out.writeUTF(name);

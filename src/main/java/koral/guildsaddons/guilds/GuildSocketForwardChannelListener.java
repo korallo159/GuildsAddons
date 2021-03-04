@@ -120,11 +120,13 @@ public class GuildSocketForwardChannelListener implements ForwardChannelListener
             Guild newGuild;
             try {
                 newGuild = GuildStatements.deserialize((JSONObject) new JSONParser().parse(data));
-                for (Field field : Guild.class.getDeclaredFields())
+                for (Field field : Guild.class.getDeclaredFields()) {
+                    field.setAccessible(true);
                     if (!Modifier.isStatic(field.getModifiers()) && !Objects.equals(field.get(guild), field.get(newGuild))) {
                         field.set(guild, field.get(newGuild));
                         System.out.println(String.format("Ustawiono gildi %s wartość %s na %s", guild.name, field.getName(), field.get(guild)));//TODO: usunąć tego loga
                     }
+                }
             } catch (ParseException | IllegalAccessException e) {
                 e.printStackTrace();
             }
