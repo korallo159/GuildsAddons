@@ -125,6 +125,9 @@ public class PlayerDeathListener implements Listener {
                     if(date.before(new Date())){
                        isReady.set(false);
                     }
+                    else
+                    player.getScoreboardTags().remove(tag);
+
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
