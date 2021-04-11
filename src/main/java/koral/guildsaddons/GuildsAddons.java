@@ -104,6 +104,12 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         StoneDrop stoneDrop = new StoneDrop();
         registerListener(stoneDrop);
         getCommand("turbodrop").setExecutor(stoneDrop);
+
+
+        Klatka1v1 klatka = new Klatka1v1();
+        registerListener(klatka);
+        getCommand("pvp").setExecutor(klatka);
+
         getCommand("drop").setExecutor(stoneDrop);
         getCommand("setrtp").setExecutor(new SetRtp());
 

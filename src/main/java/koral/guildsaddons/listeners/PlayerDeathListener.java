@@ -27,8 +27,8 @@ public class PlayerDeathListener implements Listener {
         if (ev.isCancelled()) return;
         Player killed = ev.getEntity();
         SectorServer.doForNonNull(killed.getKiller(), killer -> {
-            if(isReadyForKill(killer))
-                setData(killer);
+            if(isReadyForKill(killer, killed))
+                setData(killer, killed);
             else return;
             if(killer.getAddress().getAddress().equals(killed.getAddress().getAddress())){
                 SectorServer.sendToServer("helpop", "ALL", out ->{
@@ -106,37 +106,42 @@ public class PlayerDeathListener implements Listener {
         return 0;
     }
 
-    private void setData(Player player){
+    private void setData(Player killer, Player killed){
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
         Date newDate =DateUtils.addMinutes(new Date(), 30);
         String dateString = sdf.format(newDate);
-        player.getScoreboardTags().add("killtimer_" + dateString);
+        killer.getScoreboardTags().add("killtimer_" + killed.getName() + "-" + dateString);
     }
 
-    public boolean isReadyForKill(Player player){
+    public boolean isReadyForKill(Player killer, Player killed){
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
         AtomicBoolean isReady = new AtomicBoolean(true);
-        player.getScoreboardTags().forEach(tag ->{
+        killer.getScoreboardTags().forEach(tag ->{
             if(tag.startsWith("killtimer_")){
-                String data = tag.replace("killtimer_", "");
-                try {
-                    Date date = sdf.parse(data);
-                    if(date.before(new Date())){
-                       isReady.set(false);
-                    }
-                    else
-                    player.getScoreboardTags().remove(tag);
+                String nick_data = tag.replace("killtimer_", "");
 
-                } catch (ParseException e) {
-                    e.printStackTrace();
+                int index_ = nick_data.indexOf('-');
+                String killed_name = nick_data.substring(0, index_);
+
+                if (killed_name.equals(killed.getName())) {
+                    String data = nick_data.substring(index_ + 1);
+
+                    try {
+                        Date date = sdf.parse(data);
+                        if(date.before(new Date())){
+                            isReady.set(false);
+                        }
+                        else
+                            killer.getScoreboardTags().remove(tag);
+
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
-        if(!isReady.get()){
-            return false;
-        }
 
-        return true;
+        return isReady.get();
     }
 
 

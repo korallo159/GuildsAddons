@@ -11,6 +11,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -72,10 +73,17 @@ public class StoneDrop implements Listener, TabExecutor {
                     );
             if (drop.permsMap != null) {
                 lore.add("");
-                drop.permsMap.forEach((perm, change) -> lore.add(
+
+                Map<String, String> perm_lore = new HashMap<>();
+
+                drop.permsMap.forEach((perm, change) -> perm_lore.put(perm,
                         ChatColor.GOLD + GuildsAddons.plugin.getConfig().getString("Permnames." + perm, perm) +
                                 "§8: §a+§e" + String.format("%.2f", change * 100)
                 ));
+
+                GuildsAddons.plugin.getConfig().getStringList("PermPriority").forEach(perm -> {
+                    lore.add(perm_lore.get(perm));
+                });
             }
             meta.setLore(lore);
 
@@ -161,7 +169,7 @@ public class StoneDrop implements Listener, TabExecutor {
             }
 
             for (int i = 0; i < multiplier; i++) {
-                ev.getPlayer().giveExp(GuildsAddons.plugin.getConfig().getInt("exp from blocks", 0));
+                ev.getBlock().getWorld().spawn(ev.getBlock().getLocation().add(.5,.5, .5), ExperienceOrb.class).setExperience(GuildsAddons.plugin.getConfig().getInt("exp from blocks", 0));
                 for (Drop drop : drops)
                     if (!ev.getPlayer().getScoreboardTags().contains(unwantedTag(drop.mat)) && Math.random() < drop.getChange(ev.getPlayer()))
                         ev.getPlayer().getInventory().addItem(new ItemStack(drop.mat)).forEach((count, cannceledItem) ->

@@ -21,6 +21,10 @@ ThrowingTnt:
 Permnames:
   drop.vip: §eVIP
   drop.svip: §bSVIP
+PermPriority:
+  - drop.vip
+  - drop.svip
+  - drop.prezes
 
 blockedCmdOnOtherGuild:
   - '/tpaccept '

@@ -83,10 +83,7 @@ public class InventoryCloseListener implements Listener {
             }
         }
         if (!toSend.isEmpty())
-            SectorScheduler.addTaskToQueue("prePlayerChangeSectorEvent", () -> {
-                        PlayersStatements.updatePlayerData(p, toSend);
-                        System.out.println(toSend);
-                    });
+            SectorScheduler.addTaskToQueue("prePlayerChangeSectorEvent", () -> PlayersStatements.updatePlayerData(p, toSend));
 
     }
 }
