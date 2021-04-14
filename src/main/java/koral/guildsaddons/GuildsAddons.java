@@ -106,9 +106,9 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getCommand("turbodrop").setExecutor(stoneDrop);
 
 
-        Klatka1v1 klatka = new Klatka1v1();
-        registerListener(klatka);
-        getCommand("pvp").setExecutor(klatka);
+     //   Klatka1v1 klatka = new Klatka1v1();
+     //   registerListener(klatka);
+    //    getCommand("pvp").setExecutor(klatka);
 
         getCommand("drop").setExecutor(stoneDrop);
         getCommand("setrtp").setExecutor(new SetRtp());
@@ -124,6 +124,12 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getCommand("gildia").setExecutor(new GuildCommand());
         getCommand("gadmin").setExecutor(new GuildAdminCommand());
         getCommand("rtp").setExecutor(new rtp());
+
+        if(getConfig().getBoolean("cage")) {
+            Klatka klatka = new Klatka();
+            registerListener(klatka);
+            getCommand("klatka").setExecutor(klatka);
+        }
 
         PluginCommandYamlParser.parse(this).forEach(cmd -> {
             PluginCommand pcmd = getCommand(cmd.getName());
@@ -144,6 +150,7 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         SectorServer.registerForwardChannelListener(GuildSocketForwardChannelListener.class);
 
         Bukkit.getScheduler().runTaskTimer(plugin, () -> Bukkit.getOnlinePlayers().forEach(CustomTabList::updateOnlineAll), 0, 20 * 10);
+        
     }
     void registerListener(Listener listener) {
         try {

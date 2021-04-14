@@ -44,9 +44,8 @@ commands:
     permission: guildsaddons.gildia
   gadmin:
     permission: guildsaddons.gadmin
-  pvp:
-    permission: guildaddons.pvp
-    usage: /pvp <nick>
+  klatka:
+    permission: guildsaddons.klatka
 
 permissions:
   home.others:

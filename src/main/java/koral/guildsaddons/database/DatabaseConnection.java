@@ -7,7 +7,7 @@ import koral.guildsaddons.GuildsAddons;
 public class DatabaseConnection {
 
     public static HikariDataSource hikari;
-
+//SET session wait_timeout=1200; poprzednio 28800
     public static void configureDbConnection() {
         HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl(GuildsAddons.getPlugin().getConfig().getString("jdbcurl"));

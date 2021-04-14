@@ -32,3 +32,5 @@ blockedCmdOnOtherGuild:
   - '/ustawhome '
   - '/sethome '
   - '/ustawdom '
+
+cage: false
