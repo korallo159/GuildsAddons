@@ -23,8 +23,8 @@ public class DiscoArmor {
 
 
     public void runDiscoArmor(Player player){
-        Random r = new Random();
 
+        Random r = new Random();
         Bukkit.getScheduler().runTaskTimer(GuildsAddons.getPlugin(), () ->{
             ItemStack isHelmet = new ItemStack(Material.LEATHER_HELMET); LeatherArmorMeta m1 = (LeatherArmorMeta) isHelmet.getItemMeta();
             ItemStack isChestPlate = new ItemStack(Material.LEATHER_CHESTPLATE); LeatherArmorMeta m2 = (LeatherArmorMeta) isChestPlate.getItemMeta();

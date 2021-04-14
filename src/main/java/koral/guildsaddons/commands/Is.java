@@ -65,9 +65,10 @@ public class Is implements TabExecutor, Listener {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-    if(command.getName().equalsIgnoreCase("isadmin")) {
         List<String> list = new ArrayList<>();
-        for (String s : config.config.getKeys(false)) {
+    if(command.getName().equalsIgnoreCase("isadmin")) {
+
+        for (String s : config.getConfig().getKeys(false)) {
             list.add(s);
         }
         if (args.length == 2) {
@@ -75,7 +76,7 @@ public class Is implements TabExecutor, Listener {
         }
     }
 
-        return null;
+        return args.length == 2 ? list : null;
     }
 
     private void AsyncaddToPlayerItemShop(String playername, String item, int amount) {
