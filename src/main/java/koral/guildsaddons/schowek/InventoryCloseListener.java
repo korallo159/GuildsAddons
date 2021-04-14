@@ -17,29 +17,29 @@ import org.json.simple.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class InventoryCloseListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onInventoryCloseMonitor(InventoryCloseEvent ev) {
         if (ev.getInventory().getHolder() != null && ev.getInventory().getHolder() instanceof Schowek.Holder) {
             JSONObject json = new JSONObject();
-            ev.getInventory().forEach(item -> {
-                if (!Schowek.Holder.emptySlot.isSimilar(item)) {
-                    String key = item.getType().toString();
-                    Object numObj = json.getOrDefault(key, 0l);
-                    int num;
-                    if (numObj instanceof Long)
-                        num = (int) (long) numObj;
-                    else if (numObj instanceof Integer)
-                        num = (int) numObj;
-                    else
-                        num = Integer.parseInt(numObj.toString());
-                    json.put(key, num + item.getAmount());
-                }
+
+            Pattern pattern = Pattern.compile(".+ (-?\\d+)");
+            Schowek.dataMap.forEach((mat, pair) -> {
+                int slot = pair.t2;
+
+                Matcher matcher = pattern.matcher(ev.getInventory().getItem(slot).getItemMeta().getDisplayName());
+
+                matcher.matches();
+
+                json.put(mat.toString(), Integer.parseInt(matcher.group(1)));
             });
+
             SectorScheduler.addTaskToQueue("prePlayerChangeSectorEvent",
                     () -> PlayersStatements.setPlayerData((Player) ev.getPlayer(), json.toJSONString()));
-            checkEq(ev, true);
+            //checkEq(ev, true);
         }
     }
 
@@ -61,8 +61,8 @@ public class InventoryCloseListener implements Listener {
             ItemStack item = inv.getItem(i);
             if (item != null) {
                 Material mat = item.getType();
-                Integer max = Schowek.limits.get(mat);
-                if (max != null) {
+                int max = Schowek.getLimit(mat);
+                if (max > 0) {
                     int akt = amounts.getOrDefault(mat, 0);
                     if (akt >= max) {
                         toSend.put(mat.toString(), toSend.getOrDefault(mat.toString(), 0) + item.getAmount());

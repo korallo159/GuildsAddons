@@ -1,0 +1,16 @@
+# panel size 1-6
+size: 4
+
+items:
+  # Material:
+  #   slot: slot
+  #   limit: limit
+  ender_pearl:
+    slot: 13
+    limit: 5
+  enchanted_golden_apple:
+    slot: 21
+    limit: 1
+  golden_apple:
+    slot: 23
+    limit: 15

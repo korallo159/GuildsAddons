@@ -21,8 +21,15 @@ public class ItemPickUpListener implements Listener {
             Player p = (Player) ev.getEntity();
             Material mat = ev.getItem().getItemStack().getType();
 
-            Integer max = Schowek.limits.get(mat);
-            if (max != null) {
+            if (    p.getOpenInventory().getTopInventory().getHolder() != null &&
+                    p.getOpenInventory().getTopInventory().getHolder() instanceof Schowek.Holder &&
+                    Schowek.dataMap.containsKey(mat)) {
+                ev.setCancelled(true);
+                return;
+            }
+
+            int max = Schowek.getLimit(mat);
+            if (max > 0) {
                 int amount = 0;
                 for (ItemStack item : p.getInventory())
                     if (item != null && item.getType() == mat)

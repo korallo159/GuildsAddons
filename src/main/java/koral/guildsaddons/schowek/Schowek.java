@@ -3,6 +3,7 @@ package koral.guildsaddons.schowek;
 import koral.guildsaddons.GuildsAddons;
 import koral.guildsaddons.database.statements.PlayersStatements;
 import koral.guildsaddons.managers.ConfigManager;
+import koral.guildsaddons.util.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -19,16 +20,13 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Schowek implements TabExecutor {
     public static class Holder implements InventoryHolder {
         static final ItemStack emptySlot;
         static {
-            emptySlot = new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS_PANE);
+            emptySlot = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
             ItemMeta meta = emptySlot.getItemMeta();
             meta.setDisplayName(ChatColor.GRAY + " ");
             meta.setUnbreakable(true);
@@ -38,29 +36,28 @@ public class Schowek implements TabExecutor {
 
         final Inventory inv;
         public Holder(JSONObject json) {
-            List<ItemStack> items = new ArrayList<>();
+            inv = Bukkit.createInventory(this, invSize, ChatColor.DARK_RED + "" + ChatColor.BOLD + "Schowek");
 
-            json.forEach((item, _amount) -> {
-                int amount = (int) (long) _amount;
-                Material mat = Material.valueOf((String) item);
+            for (int i=0; i < inv.getSize(); i++)
+                inv.setItem(i, emptySlot);
 
-                while (amount > 0) {
-                    int count = Math.min(amount, 64);
-                    amount -= count;
+            dataMap.forEach((mat, pair) -> {
+                int slot = pair.t2;
 
-                    ItemStack itemStack = new ItemStack(mat);
-                    itemStack.setAmount(count);
-                    items.add(itemStack);
+                int count = (int) (long) json.getOrDefault(mat.toString(), 0L);
+
+                ItemStack item = new ItemStack(mat);
+                ItemMeta meta = item.getItemMeta();
+                meta.addItemFlags(ItemFlag.HIDE_DYE);
+                meta.setDisplayName("§6Posiadane§8:§e " + count);
+                meta.setLore(Arrays.asList("§aKliknij aby wypłacić"));
+                item.setItemMeta(meta);
+                if (count > 0 && count <= 64) {
+                    item.setAmount(count);
                 }
+
+                inv.setItem(slot, item);
             });
-
-            inv = Bukkit.createInventory(this, ((items.size() - 1) / 9 + 1) * 9, ChatColor.DARK_RED + "" + ChatColor.BOLD + "Schowek");
-
-            int i = 0;
-            for (ItemStack item : items)
-                inv.setItem(i++, item);
-            while (i < inv.getSize())
-                inv.setItem(i++, emptySlot);
         }
 
         @Override
@@ -69,14 +66,29 @@ public class Schowek implements TabExecutor {
         }
     }
 
-    static final Map<Material, Integer> limits = new HashMap<>();
+    // map: (limit, slot)
+    static final Map<Material, Pair<Integer, Integer>> dataMap = new HashMap<>();
+    static int invSize;
+
+    private static final Pair<Integer, Integer> emptyPair = new Pair<>(0, 0);
+    public static int getLimit(Material mat) {
+        return dataMap.getOrDefault(mat, emptyPair).t1;
+    }
 
     public static void reload() {
-        limits.clear();
-        ConfigManager config = new ConfigManager("items limit.yml");
-        config.config.getValues(false).forEach((str, count) -> {
+        dataMap.clear();
+
+        ConfigManager config = new ConfigManager("schowek.yml");
+
+        invSize = config.config.getInt("size") * 9;
+
+        config.config.getConfigurationSection("items").getKeys(false).forEach(str -> {
             try {
-                limits.put(Material.valueOf(str.toUpperCase().replace(' ', '_')), (Integer) count);
+                Material mat = Material.valueOf(str.toUpperCase().replace(' ', '_'));
+                int limit = config.config.getInt("items." + str + ".limit");
+                int slot  = config.config.getInt("items." + str + ".slot");
+
+                dataMap.put(mat, new Pair<>(limit, slot));
             } catch (Throwable e) {
                 System.out.println("Niepoprawny item w \"items limit.yml\": " + str);
             }
