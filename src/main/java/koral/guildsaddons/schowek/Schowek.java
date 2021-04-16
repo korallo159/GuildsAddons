@@ -106,9 +106,23 @@ public class Schowek implements TabExecutor {
         else
             Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.plugin, () -> {
                 try {
-                    String data = PlayersStatements.getMysqlPlayerData(((Player) sender));
-                    JSONObject json = data == null ? new JSONObject() : (JSONObject) new JSONParser().parse(data);
-                    Inventory inv = new Holder(json).getInventory();
+                    if (args.length >= 1 && sender.hasPermission("guildsaddons.schowek.admin")) {
+                        JSONObject data = getData(args[0]);
+                        if (data == null)
+                            sender.sendMessage("Niepoprawny gracz: " + args[0]);
+                        else {
+                            sender.sendMessage("§aItemy w showku gracza §2" + args[0]);
+                            data.forEach((material, amount) ->
+                                    sender.sendMessage("§6" + material.toString().toLowerCase().replace("_", " ") + "§8: §e" + amount));
+                        }
+
+                        if (args.length >= 2 && args[1].equalsIgnoreCase("wyczyść")) {
+                            PlayersStatements.setPlayerData(args[0], "{}");
+                            sender.sendMessage("\n§aWyczyszczono schowek gracza §2" + args[0]);
+                        }
+                    }
+
+                    Inventory inv = new Holder(getData(sender.getName())).getInventory();
                     Bukkit.getScheduler().runTask(GuildsAddons.plugin, () -> ((Player) sender).openInventory(inv));
                 } catch (ParseException e) {
                     e.printStackTrace();
@@ -116,4 +130,10 @@ public class Schowek implements TabExecutor {
             });
         return true;
     }
+
+    private JSONObject getData(String playerName) throws ParseException {
+        String data = PlayersStatements.getMysqlPlayerData(playerName);
+        return data == null ? new JSONObject() : (JSONObject) new JSONParser().parse(data);
+    }
+
 }

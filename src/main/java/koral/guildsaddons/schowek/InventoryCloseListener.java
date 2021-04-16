@@ -52,6 +52,7 @@ public class InventoryCloseListener implements Listener {
         checkEq((Player) ev.getPlayer(), ev, force);
     }
     static void checkEq(Player p, InventoryEvent ev, boolean force) {
+        if (p.hasPermission("guildsaddons.schowek.bypass")) return;
         if (!force && ev.getInventory().getHolder() != null && ev.getInventory().getHolder() instanceof Schowek.Holder)
             return;
         Map<Material, Integer> amounts = new HashMap<>();
