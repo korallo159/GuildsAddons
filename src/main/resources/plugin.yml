@@ -46,6 +46,8 @@ commands:
     permission: guildsaddons.gadmin
   klatka:
     permission: guildsaddons.klatka
+  disco:
+    permission: guildsaddons.disco
 
 permissions:
   home.others:

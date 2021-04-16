@@ -124,6 +124,7 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getCommand("gildia").setExecutor(new GuildCommand());
         getCommand("gadmin").setExecutor(new GuildAdminCommand());
         getCommand("rtp").setExecutor(new rtp());
+        getCommand("disco").setExecutor(new DiscoArmor());
 
         if(getConfig().getBoolean("cage")) {
             Klatka klatka = new Klatka();

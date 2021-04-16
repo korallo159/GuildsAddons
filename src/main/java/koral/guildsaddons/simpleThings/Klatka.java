@@ -2,6 +2,7 @@ package koral.guildsaddons.simpleThings;
 
 import koral.guildsaddons.GuildsAddons;
 import koral.guildsaddons.managers.ConfigManager;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -19,7 +20,7 @@ import java.util.*;
 public class Klatka implements Listener, TabExecutor {
 
     Queue<Player> queue = new ArrayDeque<>(2);
-    ConfigManager config = new ConfigManager("cage.yml");
+    public static ConfigManager cageConfig = new ConfigManager("cage.yml");
     Cage cage = new Cage();
 
 
@@ -36,17 +37,23 @@ public class Klatka implements Listener, TabExecutor {
             switch(args[0]){
                 case"loc1":
                     cage.setSpawnPoint1(player.getLocation());
-                    config.getConfig().set("cage.s1", player.getLocation());
-                    config.save();
+                    cageConfig.getConfig().set("cage.s1", player.getLocation());
+                    cageConfig.save();
                     player.sendMessage("ustawiles 1miejsce spawna klatki");
                     break;
 
                 case"loc2":
                     cage.setSpawnPoint2(player.getLocation());
-                    config.getConfig().set("cage.s2", player.getLocation());
-                    config.save();
+                    cageConfig.getConfig().set("cage.s2", player.getLocation());
+                    cageConfig.save();
                     player.sendMessage("ustawiles 2miejsce spawna klatki");
                     break;
+                case"bell":
+                    cageConfig.getConfig().set("bell", ((Player) sender).getTargetBlock(5).getLocation());
+                    cageConfig.save();
+                    sender.sendMessage(ChatColor.GREEN + "Ustawiles dzwon dolaczania do klatki.");
+                    break;
+
             }
 
             return true;
@@ -71,7 +78,7 @@ public class Klatka implements Listener, TabExecutor {
                    queue.remove();
                }
             }, 600);
-            player.sendMessage("§6Dołączyłeś do kolejki do bitwy w klatce, .");
+            player.sendMessage("§6Dołączyłeś do kolejki w klatce, jeżeli w ciągu 30 sekund nie znajdzie się chętny, zostaniesz usunięty z kolejki.");
         }
 
         if(queue.size() == 2){
@@ -109,8 +116,8 @@ public class Klatka implements Listener, TabExecutor {
     }
 
     public boolean isCageConfigured() {
-        Location loc1 = config.getConfig().getLocation("cage.s1");
-        Location loc2 = config.getConfig().getLocation("cage.s2");
+        Location loc1 = cageConfig.getConfig().getLocation("cage.s1");
+        Location loc2 = cageConfig.getConfig().getLocation("cage.s2");
         if (loc1 == null || loc2 == null)
             System.out.println("§6[GUILDS] Lokalizacje klatki nie sa ustawione, zrob to koniecznie!");
         else{
@@ -123,8 +130,8 @@ public class Klatka implements Listener, TabExecutor {
     class Cage {
         {
             if(isCageConfigured()){
-                Location loc1 = config.getConfig().getLocation("cage.s1");
-                Location loc2 = config.getConfig().getLocation("cage.s2");
+                Location loc1 = cageConfig.getConfig().getLocation("cage.s1");
+                Location loc2 = cageConfig.getConfig().getLocation("cage.s2");
                 setSpawnPoint1(loc1);
                 setSpawnPoint2(loc2);
             }
