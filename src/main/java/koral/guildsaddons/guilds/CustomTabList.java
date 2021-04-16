@@ -143,8 +143,8 @@ public class CustomTabList {
         pole.accept("Zabójstwa");
         pole.accept("Smierci");
         pole.accept(" ");
-        pole.accept("Informacje");
-        pole.accept("TPS 21.37");
+        pole.accept(" ");
+        pole.accept(" ");
         pole.accept(" ");
         pole.accept(" ");
         pole.accept(" ");
@@ -207,9 +207,9 @@ public class CustomTabList {
         pole.accept("§9/g");
         pole.accept("§9/spawn");
         pole.accept("§9/tpa");
-        pole.accept("§9/ustawdom");
-        pole.accept(" ");
-        pole.accept(" ");
+        pole.accept("§9/sethome");
+        pole.accept("§9/home");
+        pole.accept("§9/drop");
         pole.accept(" ");
         pole.accept(" ");
         pole.accept(" ");

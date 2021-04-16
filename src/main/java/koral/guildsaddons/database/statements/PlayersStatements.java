@@ -43,7 +43,10 @@ public class PlayersStatements extends Statements {
     }
 
     public static void setPlayerData(Player player, String data) {
-        stringSetter("UPDATE Players SET playerdata=? WHERE NICK=?", data, player.getName());
+        setPlayerData(player.getName(), data);
+    }
+    public static void setPlayerData(String playerName, String data) {
+        stringSetter("UPDATE Players SET playerdata=? WHERE NICK=?", data, playerName);
     }
 
     public static void updatePlayerData(Player player, Map<String, Integer> updateMap){
@@ -88,8 +91,8 @@ public class PlayersStatements extends Statements {
         }
     }
 
-    public static String getMysqlPlayerData(Player player) {
-        return standardGetter("playerdata", player.getName());
+    public static String getMysqlPlayerData(String playerName) {
+        return standardGetter("playerdata", playerName);
     }
 
     public static void setHomeData(Player player, String data){

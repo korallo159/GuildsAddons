@@ -17,6 +17,7 @@ public class DatabaseConnection {
         hikariConfig.addDataSourceProperty( "cachePrepStmts" , "true" ); //pozwala lepiej wspolpracowac z prepared statements
         hikariConfig.addDataSourceProperty( "prepStmtCacheSize" , "250" );
         hikariConfig.addDataSourceProperty( "prepStmtCacheSqlLimit" , "2048" );
+        hikariConfig.setConnectionTimeout(30000);
         hikariConfig.setMaximumPoolSize(30);
         hikari = new HikariDataSource(hikariConfig);
     }

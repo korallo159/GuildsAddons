@@ -24,8 +24,10 @@ import org.json.simple.parser.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 public class Sethome implements CommandExecutor, TabExecutor {
+    public static HashMap<String, List<String>> homeMap = new HashMap<>();
 
 
     @Override
@@ -39,21 +41,33 @@ public class Sethome implements CommandExecutor, TabExecutor {
             if (args.length >= 1)
                 homeName = args[0];
 
-            if (command.getName().equalsIgnoreCase("sethome")) {
-                setHome(player, homeName);
-            } else if (command.getName().equalsIgnoreCase("home")) {
-                String owner = player.getName();
-                if (sender.hasPermission("home.others") && homeName.contains(":")) {
-                    owner = homeName.substring(0, homeName.indexOf(":"));
-                    homeName = homeName.substring(homeName.indexOf(":") + 1);
-                }
-                if(homeMap.containsKey(player.getName()) && homeMap.get(player.getName()).contains(args[0]))
-                         homeTimer(player, owner, homeName, player.getLocation(), 10);
-                else sender.sendMessage(new TextComponent(ChatColor.RED + "Nie masz takiego home!"));
-            } else if (command.getName().equalsIgnoreCase("delhome")) {
-                delHone(player, homeName);
-            } else
-                System.out.println("Problem z komendą " + label + " skontaktuj się z administratorem");
+            switch (command.getName().toLowerCase()) {
+                case "sethome":
+                    setHome(player, homeName);
+                    break;
+                case "homes":
+                    List<String> homes = homeMap.get(player.getName());
+                    if (homes == null)
+                        homes = new ArrayList<>();
+                    sender.sendMessage(ChatColor.GREEN + "Lista twoich home: " + ChatColor.LIGHT_PURPLE + homes);
+                    break;
+                case "home":
+                    String owner = player.getName();
+                    if (sender.hasPermission("home.others") && homeName.contains(":")) {
+                        owner = homeName.substring(0, homeName.indexOf(":"));
+                        homeName = homeName.substring(homeName.indexOf(":") + 1);
+                    }
+                    if(homeMap.containsKey(player.getName()) && homeMap.get(player.getName()).contains(homeName))
+                        homeTimer(player, owner, homeName, player.getLocation(), 10);
+                    else sender.sendMessage(new TextComponent(ChatColor.RED + "Nie masz takiego home!"));
+                    break;
+                case "delhome":
+                    delHone(player, homeName);
+                    break;
+                default:
+                    System.out.println("Problem z komendą " + label + " skontaktuj się z administratorem");
+                    break;
+            }
         });
         return true;
     }
@@ -183,7 +197,6 @@ public class Sethome implements CommandExecutor, TabExecutor {
         }
     }
 
-    public static HashMap<String, List<String>> homeMap = new HashMap<>();
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
