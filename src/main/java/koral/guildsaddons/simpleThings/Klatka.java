@@ -98,6 +98,9 @@ public class Klatka implements Listener, TabExecutor {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event){
         if(cage.getPlayers().contains(event.getPlayer())){
+            if(cage.getPlayers().size() == 2){
+                event.getPlayer().setHealth(0);
+            }
             cage.fightingPlayers.remove(event.getPlayer());
             Bukkit.getScheduler().runTaskLater(GuildsAddons.getPlugin(), () -> {
                 cage.endFight();
