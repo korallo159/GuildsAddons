@@ -43,7 +43,6 @@ import java.util.function.Predicate;
 
 public class GuildCommand implements TabExecutor {
     public static final String prefix = "§2[§aGildie§2]§6 ";
-
     public static void reloadGuildItems() {
         ConfigManager config = new ConfigManager("guild items.yml");
 
@@ -106,7 +105,7 @@ public class GuildCommand implements TabExecutor {
     }
 
     public static boolean msg(CommandSender sender, String msg) {
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6" + msg));
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', prefix + msg));
         return true;
     }
 
@@ -220,7 +219,7 @@ public class GuildCommand implements TabExecutor {
         String name = args[1];
         String tag = args[2];
 
-        if (name.length() > 20) return msg(p, "Nazwa gildi nie może być dłuższa niż 30 znaków!");
+        if (name.length() > 20) return msg(p, "Nazwa gildii nie może być dłuższa niż 30 znaków!");
         if (tag.length()  > 4)  return msg(p, "Tag nie może być dłuższy niż 4 znaki!");
 
         for (Map.Entry<Material, Integer> entry : Guild.upgradeCosts.get(0).t2.entrySet())
@@ -243,7 +242,7 @@ public class GuildCommand implements TabExecutor {
         );
 
         if (!regions.getApplicableRegions(region_max).testState(null, GuildsAddons.flagGuildCreate))
-            return msg(p, "Nie możesz założyć gildi w tym miejscu");
+            return msg(p, "Nie możesz założyć gildii w tym miejscu");
 
         region_max.setFlag(GuildsAddons.flagGuildCreate, StateFlag.State.DENY);
         region_max.setPriority(Guild.region_priority - 1);
@@ -265,8 +264,8 @@ public class GuildCommand implements TabExecutor {
                 false, 3, 1, PlayersStatements.getPointsData(p.getName()), now + 24*60*60*1000 /* 24h ochrony startowej*/, now);
 
 
-        region.setFlag(Flags.GREET_MESSAGE, Guild.greetPrefix + guild.name);
-        region.setFlag(Flags.FAREWELL_MESSAGE, "Opuszczasz teren gildi " + guild.name);
+        region.setFlag(Flags.GREET_MESSAGE, "§5§l>> §6" + Guild.greetPrefix + guild.name);
+        region.setFlag(Flags.FAREWELL_MESSAGE, "§5§l>> §6Opuszczasz teren gildii " + guild.name);
 
         region.setPriority(Guild.region_priority);
 
@@ -359,7 +358,7 @@ public class GuildCommand implements TabExecutor {
         Guild guild = Guild.fromPlayer(p.getName());
 
         if (guild == null)                     return msg(p, "Nie posiadasz gildii");
-        if (!p.getName().equals(guild.leader)) return msg(p, "Musisz być liderem gildi aby to zrobić");
+        if (!p.getName().equals(guild.leader)) return msg(p, "Musisz być liderem gildii aby to zrobić");
 
         Bukkit.getScheduler().runTask(GuildsAddons.getPlugin(), () -> {
             PanelYesNo.create(p, "&4&lCzy napewno chcesz usunąć gildie&9&l?", "§aOczywiście że chcę", "§cnie tym razem", () -> {
@@ -382,7 +381,7 @@ public class GuildCommand implements TabExecutor {
             if (p.getName().equals(guild.subLeader))
                 guild.subLeader = null;
             else if (p.getName().equals(guild.leader))
-                return msg(p, "Nie możesz opuścić własnej gildi");
+                return msg(p, "Nie możesz opuścić własnej gildii");
             else {
                 setGuild(p.getName(), (Guild) null);
                 return msg(p, "Nastąpiły komplikacje z opuszczaniem gildi, spróbuj ponownie, jeśli sytuacja się powtórzy skontaktuj sie z administratorem");
@@ -429,7 +428,7 @@ public class GuildCommand implements TabExecutor {
                 if (!deleted)
                     return msg(p, "Niepoprawna nazwa gracza");
             }
-            guild.sendToMembers("%s wyrzucił %s z gildi!", p.getDisplayName(), guild.subLeader);
+            guild.sendToMembers("%s wyrzucił %s z gildii!", p.getDisplayName(), guild.subLeader);
             setGuildOnEveryServers(toDelete, null);
             SectorServer.sendToServer("removeMember", "ALL", out -> {
                 out.writeUTF(guild.region_world);
@@ -455,7 +454,7 @@ public class GuildCommand implements TabExecutor {
         if (p.getName().equals(guild.leader) || p.getName().equals(guild.subLeader)) {
             int membersCount = guild.members.size() + 1 + (guild.subLeader == null ? 0 : 1);
             if (membersCount >= Guild.membersLimit)
-                return msg(p, "Osiągnięto już limit członków gildi (" + Guild.membersLimit + ")");
+                return msg(p, "Osiągnięto już limit członków gildii (" + Guild.membersLimit + ")");
 
             OfflinePlayer toInvite = playerOnline(args[1]) ? Bukkit.getOfflinePlayerIfCached(args[1]) : null;
 
@@ -473,8 +472,8 @@ public class GuildCommand implements TabExecutor {
 
             if (toInvite == null) return msg(p, "Niepoprawny gracz");
             if (guild.members.contains(toInvite.getName()) || toInvite.getName().equals(guild.leader) || toInvite.getName().equals(guild.subLeader))
-                return msg(p, "Gracz należy już do twojej gildi");
-            if (guild.equals(invites.contains(code)))                       return msg(p, "Gracz już otrzymał zaproszenie do twojej gildi");
+                return msg(p, "Gracz należy już do twojej gildii");
+            if (guild.equals(invites.contains(code)))                       return msg(p, "Gracz już otrzymał zaproszenie do twojej gildii");
             if (PlayersStatements.getGuildName(toInvite.getName()) != null) return msg(p, "Gracz posiada już gildię");
 
             SectorServer.sendToServer("updateInvitesAdd", "ALL", out -> out.writeUTF(code));
@@ -483,12 +482,12 @@ public class GuildCommand implements TabExecutor {
             Bukkit.getScheduler().runTaskLater(GuildsAddons.getPlugin(), () -> {
                 if (invites.remove(code)) {
                     SectorServer.sendToServer("updateInvitesRemove", "ALL", out -> out.writeUTF(code));
-                    fGuild.sendToMembers("Zaproszenie do gildi dla gracza %s od %s wygasło", toInvite.getName(), p.getDisplayName());
-                    sendToToInvite.accept(String.format("Zaproszenie do gildi %s od %s wygasło", fGuild.name, p.getDisplayName()));
+                    fGuild.sendToMembers("Zaproszenie do gildii dla gracza %s od %s wygasło", toInvite.getName(), p.getDisplayName());
+                    sendToToInvite.accept(String.format("Zaproszenie do gildii %s od %s wygasło", fGuild.name, p.getDisplayName()));
                 }
             }, 20 * 60 * 2);
 
-            sendToToInvite.accept(String.format("Otrzymałeś zaproszenie od gildi %s od %s które wygaśnie za 2 minuty. Wpisz /g dołącz %s aby dołaczyć",
+            sendToToInvite.accept(String.format("Otrzymałeś zaproszenie od gildii %s od %s które wygaśnie za 2 minuty. Wpisz /g dołącz %s aby dołaczyć",
                     guild.name, p.getDisplayName(), p.getName()));
             return guild.sendToMembers("%s zaprosił %s do gildi, zaprosenie wygasnie za 2 minuty", p.getDisplayName(), toInvite.getName());
         } else
@@ -508,13 +507,13 @@ public class GuildCommand implements TabExecutor {
 
         String code = p.getName() + " " + guild.name;
 
-        if (!invites.remove(code)) return msg(p, "Nie masz żadnego zaproszenia do gildi");
+        if (!invites.remove(code)) return msg(p, "Nie masz żadnego zaproszenia do gildii");
 
         SectorServer.sendToServer("updateInvitesRemove", "ALL", out -> out.writeUTF(code));
 
         int membersCount = guild.members.size() + 1 + (guild.subLeader == null ? 0 : 1);
         if (membersCount >= Guild.membersLimit)
-            return msg(p, "Gildia " + guild.name + " osiągnieła już limit członków gildi (" + Guild.membersLimit + ")");
+            return msg(p, "Gildia " + guild.name + " osiągnieła już limit członków gildii (" + Guild.membersLimit + ")");
 
         guild.members.add(p.getName());
         setGuildOnEveryServers(p.getName(), guild);
@@ -527,7 +526,7 @@ public class GuildCommand implements TabExecutor {
             out.writeUTF(p.getName());
         });
 
-        return guild.sendToMembers("%s dołączył do gildi", p.getDisplayName());
+        return guild.sendToMembers("%s dołączył do gildii", p.getDisplayName());
     }
     boolean zastępca(Player p, String[] args) {
         Guild guild = Guild.fromPlayer(p.getName());
@@ -539,8 +538,8 @@ public class GuildCommand implements TabExecutor {
 
         if (subleader == null)                           return msg(p, "Gracz nigdy nie był online");
         if (subleader.getName().equals(guild.subLeader)) return msg(p, "Ten gracz jest już zastępcą");
-        if (!guild.members.remove(subleader.getName()))  return msg(p, "Ten gracz nie należy do twojej gildi");
-        if (p.getName().equals(subleader.getName()))     return msg(p, "Nie możesz być jednocześnie liderem i zastępcą gildi");
+        if (!guild.members.remove(subleader.getName()))  return msg(p, "Ten gracz nie należy do twojej gildii");
+        if (p.getName().equals(subleader.getName()))     return msg(p, "Nie możesz być jednocześnie liderem i zastępcą gildii");
 
         if (guild.subLeader != null)
             guild.members.add(guild.subLeader);
@@ -548,7 +547,7 @@ public class GuildCommand implements TabExecutor {
         guild.subLeader = subleader.getName();
         guild.save();
 
-        return guild.sendToMembers("%s wyznaczył %s na zastępce gildi", p.getDisplayName(), subleader.getName());
+        return guild.sendToMembers("%s wyznaczył %s na zastępce gildii", p.getDisplayName(), subleader.getName());
     }
     boolean ustawdom(Player p) {
         Guild guild = Guild.fromPlayer(p.getName());
@@ -561,18 +560,18 @@ public class GuildCommand implements TabExecutor {
                 if (region.getId().equals(guild.region)) {
                     guild.home = SerializableLocation.fromLocation(p.getLocation());
                     guild.save();
-                    return guild.sendToMembers("%s wyznaczył nowy home gildi", p.getDisplayName());
+                    return guild.sendToMembers("%s wyznaczył nowy home gildii", p.getDisplayName());
                 }
             }
         } else
             return msg(p, "Nie możesz tego zrobić");
 
-        return msg(p, "Nie możesz ustawić home poza terenem gildi");
+        return msg(p, "Nie możesz ustawić home poza terenem gildii");
     }
     boolean dom(Player p) {
         Guild guild = Guild.fromPlayer(p.getName());
 
-        if (guild == null)      return msg(p, "Nie posiadasz gildi");
+        if (guild == null)      return msg(p, "Nie posiadasz gildii");
         if (guild.home == null) return msg(p, "Twoja gildia nie ma domu");
 
         Bukkit.getScheduler().runTask(GuildsAddons.getPlugin(), () -> {
@@ -590,7 +589,7 @@ public class GuildCommand implements TabExecutor {
         if (p.getName().equals(guild.leader) || p.getName().equals(guild.subLeader)) {
             guild.pvp = !guild.pvp;
             guild.save();
-            guild.sendToMembers("%s ustawił status pvp między członkami gildi na %s", p.getDisplayName(), guild.pvp ? "Włączony" : "Wyłączony");
+            guild.sendToMembers("%s ustawił status pvp między członkami gildii na %s", p.getDisplayName(), guild.pvp ? "Włączony" : "Wyłączony");
         } else
             return msg(p, "Nie możesz tego zrobić");
         return true;
@@ -601,7 +600,7 @@ public class GuildCommand implements TabExecutor {
         int lvl = guild == null ? 0 : guild.level;
 
         if (lvl >= Guild.upgradeCosts.size())
-            return msg(p, "Osiągnięto już maksymalny poziom gildi");
+            return msg(p, "Osiągnięto już maksymalny poziom gildii");
 
 
         List<Pair<Material, Integer>> list = new ArrayList<>();
@@ -614,7 +613,7 @@ public class GuildCommand implements TabExecutor {
         });
 
 
-        Inventory inv = Bukkit.createInventory(null, ((list.size() - 1) / 9 + 1) * 9, "Itemy na " + (guild == null ? "gildię" : "powiększenie gildi"));
+        Inventory inv = Bukkit.createInventory(null, ((list.size() - 1) / 9 + 1) * 9, "Itemy na " + (guild == null ? "gildię" : "powiększenie gildii"));
 
         for (int i=0; i < inv.getSize(); i++)
             inv.setItem(i, StoneDrop.Holder.emptySlot);
@@ -647,7 +646,7 @@ public class GuildCommand implements TabExecutor {
 
         Guild guild = Guild.fromPlayer(p.getName());
 
-        if (guild == null)                                                              return msg(p, "Nie posiadasz gildi");
+        if (guild == null)                                                              return msg(p, "Nie posiadasz gildii");
         if (!(p.getName().equals(guild.leader) || p.getName().equals(guild.subLeader))) return msg(p, "Nie możesz tego zrobić");
 
         Guild guild2;
@@ -685,12 +684,12 @@ public class GuildCommand implements TabExecutor {
             out.writeUTF(fguild2.name);
         });
 
-        guild.sendToMembers("%s wysłał propozycje sojuszu do gildi %s, która wygaśnie za 2 minuty", p.getDisplayName(), guild2.name);
+        guild.sendToMembers("%s wysłał propozycje sojuszu do gildii %s, która wygaśnie za 2 minuty", p.getDisplayName(), guild2.name);
         guild2.sendToMembers("Gildia %s wysłała do was propozycję sojuszu, która wygaśnie za 2 minuty", guild.name);
         Bukkit.getScheduler().runTaskLater(GuildsAddons.getPlugin(), () -> {
             if (allyInviteMap.remove(guild.name, fguild2.name) && !guild.alliances.contains(fguild2.name)) {
-                guild .sendToMembers("Zaproszenie do sojuszu dla gildi %s wygasło", fguild2.name);
-                fguild2.sendToMembers("Zaproszenie do sojuszu od gildi %s wygasło", guild.name);
+                guild .sendToMembers("Zaproszenie do sojuszu dla gildii %s wygasło", fguild2.name);
+                fguild2.sendToMembers("Zaproszenie do sojuszu od gildii %s wygasło", guild.name);
             }
         }, 20 * 60 * 2);
 
@@ -701,7 +700,7 @@ public class GuildCommand implements TabExecutor {
 
         Guild guild = Guild.fromPlayer(p.getName());
 
-        if (guild == null)                                                              return msg(p, "Nie posiadasz gildi");
+        if (guild == null)                                                              return msg(p, "Nie posiadasz gildii");
         if (!(p.getName().equals(guild.leader) || p.getName().equals(guild.subLeader))) return msg(p, "Nie możesz tego zrobić");
 
         Guild guild2;
@@ -728,8 +727,8 @@ public class GuildCommand implements TabExecutor {
     boolean powiększ(Player p) {
         Guild guild = Guild.fromPlayer(p.getName());
 
-        if (guild == null)                                                              return msg(p, "Nie posiadasz gildi");
-        if (guild.level >= Guild.upgradeCosts.size())                                   return msg(p, "Osiągnięto już maksymalny poziom gildi");
+        if (guild == null)                                                              return msg(p, "Nie posiadasz gildii");
+        if (guild.level >= Guild.upgradeCosts.size())                                   return msg(p, "Osiągnięto już maksymalny poziom gildii");
         if (!(p.getName().equals(guild.leader) || p.getName().equals(guild.subLeader))) return msg(p, "Nie możesz tego zrobić");
 
         for (Map.Entry<Material, Integer> entry : Guild.upgradeCosts.get(guild.level).t2.entrySet())
@@ -762,7 +761,7 @@ public class GuildCommand implements TabExecutor {
             out.writeInt(dxz);
         });
 
-        guild.sendToMembers("%s powiększył teren gildi", p.getDisplayName());
+        guild.sendToMembers("%s powiększył teren gildii", p.getDisplayName());
 
         return true;
     }
@@ -801,14 +800,14 @@ public class GuildCommand implements TabExecutor {
         if (guild != null) {
             sender.sendMessage("§6/g opuść §a- §9opuszcza gildię");
             if (guild.home != null)
-                sender.sendMessage("§6/g dom §a- §9teleportuje na dom gildi");
+                sender.sendMessage("§6/g dom §a- §9teleportuje na dom gildii");
             boolean leader = sender.getName().equals(guild.leader);
             if (leader || sender.getName().equals(guild.subLeader)) {
-                sender.sendMessage("§6/g pvp §a- §9włącza/wyłącza pvp między członkami gildi");
-                sender.sendMessage("§6/g zaproś <nick> §a- §9zaprasza gracza do gildi");
-                sender.sendMessage("§6/g wyrzuć <nick> §a- §9wyrzuca gracza z gildi");
-                sender.sendMessage("§6/g powiększ §a- §9powiększa teren gildi");
-                sender.sendMessage("§6/g ustawhome §a- §9ustawia dom gildi");
+                sender.sendMessage("§6/g pvp §a- §9włącza/wyłącza pvp między członkami gildii");
+                sender.sendMessage("§6/g zaproś <nick> §a- §9zaprasza gracza do gildii");
+                sender.sendMessage("§6/g wyrzuć <nick> §a- §9wyrzuca gracza z gildii");
+                sender.sendMessage("§6/g powiększ §a- §9powiększa teren gildii");
+                sender.sendMessage("§6/g ustawhome §a- §9ustawia dom gildii");
                 if (leader) {
                     sender.sendMessage("§6/g usuń §a- §9usuwa gildię");
                     sender.sendMessage("§6/g zastępca <nick> §a- §9wyznacza zastępce lidera");
@@ -816,8 +815,8 @@ public class GuildCommand implements TabExecutor {
             }
         } else {
             sender.sendMessage("§6/g załóż <nazwa> <tag> §a- §9zakłada gildię");
-            sender.sendMessage("§6/g itemy §a- §9wykaz potrzbnych itemów do założenia gildi");
-            sender.sendMessage("§6/g dołącz §a- §9dołącza do gildi z zaproszenia");
+            sender.sendMessage("§6/g itemy §a- §9wykaz potrzbnych itemów do założenia gildii");
+            sender.sendMessage("§6/g dołącz §a- §9dołącza do gildii z zaproszenia");
         }
         return true;
     }

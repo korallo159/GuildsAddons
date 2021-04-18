@@ -2,6 +2,7 @@ package koral.guildsaddons.commands;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import koral.guildsaddons.GuildsAddons;
 import koral.guildsaddons.database.statements.PlayersStatements;
 import koral.guildsaddons.model.Home;
@@ -25,6 +26,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Sethome implements CommandExecutor, TabExecutor {
     public static HashMap<String, List<String>> homeMap = new HashMap<>();
@@ -53,16 +57,12 @@ public class Sethome implements CommandExecutor, TabExecutor {
                     break;
                 case "home":
                     String owner = player.getName();
-                    if (sender.hasPermission("home.others") && homeName.contains(":")) {
-                        owner = homeName.substring(0, homeName.indexOf(":"));
-                        homeName = homeName.substring(homeName.indexOf(":") + 1);
-                    }
                     if(homeMap.containsKey(player.getName()) && homeMap.get(player.getName()).contains(homeName))
                         homeTimer(player, owner, homeName, player.getLocation(), 10);
                     else sender.sendMessage(new TextComponent(ChatColor.RED + "Nie masz takiego home!"));
                     break;
                 case "delhome":
-                    delHone(player, homeName);
+                    delHome(player, homeName);
                     break;
                 default:
                     System.out.println("Problem z komendą " + label + " skontaktuj się z administratorem");
@@ -73,12 +73,18 @@ public class Sethome implements CommandExecutor, TabExecutor {
     }
 
     public static int getHomeLimit(Player player) {
-        //TODO: Napisać
-        return 3;
+        AtomicInteger limit = new AtomicInteger(3);
+        Pattern pattern = Pattern.compile("guildsaddons\\.home\\.limit\\.(\\d+)");
+        player.getEffectivePermissions().forEach(perm -> {
+            Matcher matcher;
+            if (perm.getValue() && (matcher = pattern.matcher(perm.getPermission())).matches())
+                limit.set(Math.max(limit.get(), Integer.parseInt(matcher.group(1))));
+        });
+        return limit.get();
     }
 
 
-    private void delHone(Player player, String homeName) {
+    private void delHome(Player player, String homeName) {
         JSONParser jsonParser = new JSONParser();
         JSONArray jsonArray;
         try {
@@ -105,36 +111,35 @@ public class Sethome implements CommandExecutor, TabExecutor {
 
     }
 
-    private void setHome(Player player, String arg) {
+    private void setHome(Player player, String homeName) {
         JSONParser jsonParser = new JSONParser();
         JSONArray jsonArray;
         try {
-            jsonArray = (JSONArray) jsonParser.parse(PlayersStatements.getHomeData(player.getName())); //TODO: ASYNC
+            jsonArray = (JSONArray) jsonParser.parse(PlayersStatements.getHomeData(player.getName()));
         } catch (ParseException e) {
             jsonArray = new JSONArray();
         }
 
-        if (jsonArray.size() >= getHomeLimit(player)) {
-            boolean was = false;
-            for (int i = 0; i < jsonArray.size(); i++) {
-                JSONObject json = (JSONObject) jsonArray.get(i);
-                if (json.get("homename").toString().replace("\"", "").equalsIgnoreCase(arg)) {
-                    arg = json.get("homename").toString().replace("\"", "");
-                    was = true;
-                }
-            }
-            if (!was) {
-                player.sendMessage("§c Nie możesz postawić kolejnego home, wykorzystałeś maksymalną ilość /home dla twojej rangi");
-                return;
-            }
-        }
         Location loc = player.getLocation();
-        Home home = new Home(player.getName(), arg, player.getWorld().getName(), GuildsAddons.getPlugin().getConfig().getString("homename"),
-                loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
         Gson gson = new GsonBuilder().create();
-        jsonArray.add(gson.toJsonTree(home));
-        PlayersStatements.setHomeData(player, jsonArray.toJSONString()); //TODO ASYNC
-        player.sendMessage("§aUstawiono home " + arg);
+
+        for (int i = jsonArray.size() - 1; i >= 0; i--) {
+            Home old_home = new Gson().fromJson(((JSONObject) jsonArray.get(i)).toJSONString(), Home.class);
+            if (old_home.getHomename().equals(homeName))
+                jsonArray.remove(i);
+        }
+
+        if (jsonArray.size() >= getHomeLimit(player)) {
+            player.sendMessage("§c Nie możesz postawić kolejnego home, wykorzystałeś maksymalną ilość /home dla twojej rangi");
+            return;
+        }
+
+        Home new_home = new Home(player.getName(), homeName, player.getWorld().getName(), GuildsAddons.getPlugin().getConfig().getString("homename"),
+                loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
+
+        jsonArray.add(gson.toJsonTree(new_home));
+        PlayersStatements.setHomeData(player, jsonArray.toJSONString());
+        player.sendMessage("§aUstawiono home " + homeName);
         Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> homesCompleterGet(player));
     }
 

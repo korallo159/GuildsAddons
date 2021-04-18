@@ -38,7 +38,7 @@ public class Guild  {
     public static int tntHeight = 48;
     public static int attackTime = 120;
 
-    public static String greetPrefix = "Wszedłeś na teren gildi ";
+    public static String greetPrefix = "Wszedłeś na teren gildii ";
     public static int region_priority = 5;
 
     // [(dxz, {mat: int}})]
@@ -144,7 +144,8 @@ public class Guild  {
 
         return true;
     }
-    void sendToMembersOnlyThere(String msg) {
+    void sendToMembersOnlyThere(String _msg) {
+        String msg = "§6" + _msg;
         Consumer<String> send = nick -> SectorServer.doForNonNull(Bukkit.getPlayer(nick), p -> p.sendMessage(msg));
 
         send.accept(leader);

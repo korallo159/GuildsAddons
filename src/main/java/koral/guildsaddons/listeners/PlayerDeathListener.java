@@ -19,6 +19,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PlayerDeathListener implements Listener {
@@ -114,6 +115,9 @@ public class PlayerDeathListener implements Listener {
     }
 
     public boolean isReadyForKill(Player killer, Player killed){
+        if (Objects.equals(Guild.fromPlayer(killer.getName()), Guild.fromPlayer(killed.getName())))
+            return false;
+
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
         AtomicBoolean isReady = new AtomicBoolean(true);
         killer.getScoreboardTags().forEach(tag ->{
