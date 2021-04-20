@@ -38,7 +38,7 @@ public class Guild  {
     public static int tntHeight = 48;
     public static int attackTime = 120;
 
-    public static String greetPrefix = "Wszedłeś na teren gildii ";
+    public static String greetPrefix = "§5§l>> §6Wszedłeś na teren gildii ";
     public static int region_priority = 5;
 
     // [(dxz, {mat: int}})]
@@ -88,6 +88,34 @@ public class Guild  {
         this.creation_date = creation_date;
     }
 
+
+    public void addPlayer(String playerName) {
+        members.add(playerName);
+        GuildCommand.setGuildOnEveryServers(playerName, this);
+        recalculatePoints();
+
+        SectorServer.sendToServer("addMember", "ALL", out -> {
+            out.writeUTF(region_world);
+            out.writeUTF(region);
+            out.writeUTF(playerName);
+        });
+    }
+    public void removePlayer(String playerName) {
+        if (playerName.equals(subLeader))
+            subLeader = null;
+        else
+            members.remove(playerName);
+
+        GuildCommand.setGuildOnEveryServers(playerName, null);
+        SectorServer.sendToServer("removeMember", "ALL", out -> {
+            out.writeUTF(region_world);
+            out.writeUTF(region);
+            out.writeUTF(playerName);
+        });
+        recalculatePoints();
+    }
+
+
     public void save() {
         GuildStatements.updateData(this);
         SectorServer.sendToServer("guild_save", "ALL", out -> {
@@ -122,9 +150,9 @@ public class Guild  {
 
     public void updateNameTag(String playerName) {
         Bukkit.getScheduler().runTask(GuildsAddons.getPlugin(), () -> {
-            Team team = Bukkit.getScoreboardManager().getMainScoreboard().getTeam(name);
+            Team team = Bukkit.getScoreboardManager().getMainScoreboard().getTeam(tag);
             if (team == null) {
-                team = Bukkit.getScoreboardManager().getMainScoreboard().registerNewTeam(name);
+                team = Bukkit.getScoreboardManager().getMainScoreboard().registerNewTeam(tag);
                 team.setSuffix(" §2[§a" + tag + "§2]");
                 team.setColor(ChatColor.GOLD);
             }
@@ -236,7 +264,7 @@ public class Guild  {
         members.forEach(forget::accept);
 
         Bukkit.getScheduler().runTask(GuildsAddons.getPlugin(),
-                () -> SectorServer.doForNonNull(Bukkit.getScoreboardManager().getMainScoreboard().getTeam(name), Team::unregister));
+                () -> SectorServer.doForNonNull(Bukkit.getScoreboardManager().getMainScoreboard().getTeam(tag), Team::unregister));
     }
     public static void playerJoinEvent(PlayerJoinEvent ev) {
         Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> {

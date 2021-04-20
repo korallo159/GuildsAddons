@@ -27,7 +27,6 @@ public class EntityDamageByEntityListener implements Listener {
                 Guild guild = Guild.fromLocation(ev.getEntity().getLocation());
                 Guild playerGuild;
 
-
                 if (guild.equals(Guild.fromPlayer(p.getName()))) {
                     p.sendMessage("Nie możesz zniszczyć serca swojej gildi");
                     ev.setCancelled(true);
@@ -74,9 +73,9 @@ public class EntityDamageByEntityListener implements Listener {
         Guild g2 = Guild.fromPlayerUnSafe(p2.getName());
 
 
-        if (Objects.equals(g1, g2) && g1 != null && !g1.pvp)
+        if (g1 != null && g1.equals(g2) && !g1.pvp)
             ev.setCancelled(true);
-        else if (g1 != null && g2 != null && g1.alliances.contains(g2.name))
+        else if (g1 != null && g2 != null && g1.alliances.contains(g2.name) && g2.alliances.contains(g1.name))
             ev.setCancelled(true);
 
         return true;

@@ -115,6 +115,7 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
 
         Sethome setHome = new Sethome();
         Is is = new Is();
+        GuildCommand guildCommand = new GuildCommand();
         getCommand("sethome").setExecutor(setHome);
         getCommand("delhome").setExecutor(setHome);
         getCommand("homes").setExecutor(setHome);
@@ -122,7 +123,8 @@ public final class GuildsAddons extends JavaPlugin implements Listener {
         getCommand("itemshop").setExecutor(is);
         getCommand("isadmin").setExecutor(is);
         getCommand("isedit").setExecutor(is);
-        getCommand("gildia").setExecutor(new GuildCommand());
+        getCommand("gildia").setExecutor(guildCommand);
+        getCommand("gildia").setTabCompleter(guildCommand);
         getCommand("gadmin").setExecutor(new GuildAdminCommand());
         getCommand("rtp").setExecutor(new rtp());
         getCommand("disco").setExecutor(new DiscoArmor());

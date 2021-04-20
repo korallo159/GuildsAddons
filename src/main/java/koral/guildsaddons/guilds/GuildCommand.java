@@ -264,7 +264,7 @@ public class GuildCommand implements TabExecutor {
                 false, 3, 1, PlayersStatements.getPointsData(p.getName()), now + 24*60*60*1000 /* 24h ochrony startowej*/, now);
 
 
-        region.setFlag(Flags.GREET_MESSAGE, "§5§l>> §6" + Guild.greetPrefix + guild.name);
+        region.setFlag(Flags.GREET_MESSAGE, Guild.greetPrefix + guild.name);
         region.setFlag(Flags.FAREWELL_MESSAGE, "§5§l>> §6Opuszczasz teren gildii " + guild.name);
 
         region.setPriority(Guild.region_priority);
@@ -384,7 +384,8 @@ public class GuildCommand implements TabExecutor {
                 return msg(p, "Nie możesz opuścić własnej gildii");
             else {
                 setGuild(p.getName(), (Guild) null);
-                return msg(p, "Nastąpiły komplikacje z opuszczaniem gildi, spróbuj ponownie, jeśli sytuacja się powtórzy skontaktuj sie z administratorem");
+                System.out.println(prefix + p.getName() + "był w gildii, która go nie widziała");
+                return msg(p, "Wystąpiły komplikacje z opuszczaniem gildi, spróbuj ponownie, jeśli sytuacja się powtórzy skontaktuj sie z administratorem");
             }
 
         guild.sendToMembers("%s opuścił gildię", p.getDisplayName());
@@ -425,17 +426,15 @@ public class GuildCommand implements TabExecutor {
 
                         break;
                     }
-                if (!deleted)
-                    return msg(p, "Niepoprawna nazwa gracza");
+                if (!deleted) {
+                    if (guild.equals(Guild.fromPlayer(args[1])))
+                        toDelete = args[1];
+                    else
+                        return msg(p, "Niepoprawna nazwa gracza");
+                }
             }
-            guild.sendToMembers("%s wyrzucił %s z gildii!", p.getDisplayName(), guild.subLeader);
-            setGuildOnEveryServers(toDelete, null);
-            SectorServer.sendToServer("removeMember", "ALL", out -> {
-                out.writeUTF(guild.region_world);
-                out.writeUTF(guild.region);
-                out.writeUTF(args[1]);
-            });
-            guild.recalculatePoints();
+            guild.sendToMembers("%s wyrzucił %s z gildii!", p.getDisplayName(), toDelete);
+            guild.removePlayer(toDelete);
         } else
             return msg(p, "Nie możesz tego zrobić");
         return true;
@@ -515,16 +514,7 @@ public class GuildCommand implements TabExecutor {
         if (membersCount >= Guild.membersLimit)
             return msg(p, "Gildia " + guild.name + " osiągnieła już limit członków gildii (" + Guild.membersLimit + ")");
 
-        guild.members.add(p.getName());
-        setGuildOnEveryServers(p.getName(), guild);
-        guild.recalculatePoints();
-
-        Guild fguild = guild;
-        SectorServer.sendToServer("addMember", "ALL", out -> {
-            out.writeUTF(fguild.region_world);
-            out.writeUTF(fguild.region);
-            out.writeUTF(p.getName());
-        });
+        guild.addPlayer(p.getName());
 
         return guild.sendToMembers("%s dołączył do gildii", p.getDisplayName());
     }
@@ -779,6 +769,8 @@ public class GuildCommand implements TabExecutor {
             sender.sendMessage("§6zastępca§8: §e" + guild.subLeader);
         if (!guild.members.isEmpty())
             sender.sendMessage("§6członkowie§8: §e" + guild.members);
+        if (!guild.alliances.isEmpty())
+            sender.sendMessage("§6sojusznicy§8: §e" + guild.alliances);
         sender.sendMessage(" ");
         sender.sendMessage("§6życia§8: §4" + guild.hearts);
         sender.sendMessage("§6level§8: §a" + guild.level);
@@ -808,6 +800,8 @@ public class GuildCommand implements TabExecutor {
                 sender.sendMessage("§6/g wyrzuć <nick> §a- §9wyrzuca gracza z gildii");
                 sender.sendMessage("§6/g powiększ §a- §9powiększa teren gildii");
                 sender.sendMessage("§6/g ustawhome §a- §9ustawia dom gildii");
+                sender.sendMessage("§6/g sojusz <gildia> - §9 zaprasza gildię do sojuszu");
+                sender.sendMessage("§6/g usuńsojusz <gildia> - §9 zrywa sojusz z gildią");
                 if (leader) {
                     sender.sendMessage("§6/g usuń §a- §9usuwa gildię");
                     sender.sendMessage("§6/g zastępca <nick> §a- §9wyznacza zastępce lidera");

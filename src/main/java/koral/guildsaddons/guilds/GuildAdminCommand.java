@@ -18,7 +18,7 @@ public class GuildAdminCommand implements TabExecutor {
         switch(args[0]){
             case"usunzgildii":
                 Bukkit.getScheduler().runTaskAsynchronously(GuildsAddons.getPlugin(), () -> PlayersStatements.setGuild(args[1], null));
-                sender.sendMessage("Usunales gracza z gildii");
+                sender.sendMessage("Usunales gracza " + args[1] + " z gildii");
                 break;
             case"dodajpunkty":
                 if(args.length == 1) return false;
@@ -31,6 +31,6 @@ public class GuildAdminCommand implements TabExecutor {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        return args.length == 1 ? Arrays.asList("usunzgildii", "dodajpunkty") : null;
+        return args.length <= 1 ? Arrays.asList("usunzgildii", "dodajpunkty") : null;
     }
 }
